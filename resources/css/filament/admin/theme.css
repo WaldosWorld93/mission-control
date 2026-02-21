@@ -77,3 +77,29 @@
 .fi-section {
     @apply border border-gray-200 shadow-sm dark:border-gray-700;
 }
+
+/* Kanban drag-and-drop */
+.kanban-ghost {
+    @apply opacity-30;
+}
+
+.kanban-drag {
+    @apply rotate-2 shadow-lg;
+}
+
+.kanban-column.sortable-chosen {
+    @apply bg-indigo-50 dark:bg-indigo-950/20;
+}
+
+/* Chat message styles */
+.chat-message-agent {
+    @apply rounded-lg p-3;
+}
+
+.chat-message-human {
+    @apply rounded-lg bg-indigo-50 p-3 dark:bg-indigo-950/20;
+}
+
+.chat-mention {
+    @apply font-medium text-indigo-600 dark:text-indigo-400;
+}

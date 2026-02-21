@@ -100,6 +100,14 @@ class ProjectResource extends Resource
                     ->options(ProjectStatus::class),
             ])
             ->actions([
+                Tables\Actions\Action::make('board')
+                    ->label('Board')
+                    ->icon('heroicon-o-view-columns')
+                    ->url(fn (Project $record): string => route('filament.app.pages.project-board', ['project' => $record])),
+                Tables\Actions\Action::make('messages')
+                    ->label('Messages')
+                    ->icon('heroicon-o-chat-bubble-left-right')
+                    ->url(fn (Project $record): string => route('filament.app.pages.project-messages', ['project' => $record])),
                 Tables\Actions\EditAction::make(),
             ])
             ->bulkActions([

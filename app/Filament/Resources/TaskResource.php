@@ -297,11 +297,10 @@ class TaskResource extends Resource
                         Infolists\Components\Tabs\Tab::make('Conversation')
                             ->icon('heroicon-o-chat-bubble-left-right')
                             ->schema([
-                                Infolists\Components\TextEntry::make('thread.id')
+                                Infolists\Components\ViewEntry::make('thread')
                                     ->label('')
-                                    ->placeholder('No conversation thread linked to this task.')
-                                    ->visible(fn (Task $record): bool => $record->thread !== null)
-                                    ->formatStateUsing(fn ($state): string => "Thread: {$state}"),
+                                    ->view('filament.resources.task-resource.thread-embed')
+                                    ->visible(fn (Task $record): bool => $record->thread !== null),
                                 Infolists\Components\Placeholder::make('no_thread')
                                     ->label('')
                                     ->content('No conversation thread linked to this task.')
