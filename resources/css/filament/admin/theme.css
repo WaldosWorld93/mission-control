@@ -1,0 +1,79 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+@tailwind variants;
+@import '../../../../vendor/filament/filament/resources/css/base.css';
+
+@config 'tailwind.config.js';
+
+/* JetBrains Mono for monospace elements */
+.font-mono {
+    font-family: 'JetBrains Mono', ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, 'Liberation Mono', 'Courier New', monospace;
+}
+
+/* Status dot component */
+.status-dot {
+    @apply inline-block rounded-full;
+}
+
+.status-dot--sm {
+    @apply h-2 w-2;
+}
+
+.status-dot--md {
+    @apply h-2.5 w-2.5;
+}
+
+.status-dot--lg {
+    @apply h-3 w-3;
+}
+
+/* Pulse animation for online status */
+@keyframes status-pulse {
+    0%, 100% {
+        opacity: 1;
+    }
+    50% {
+        opacity: 0.5;
+    }
+}
+
+.status-dot--pulse {
+    animation: status-pulse 2s cubic-bezier(0.4, 0, 0.6, 1) infinite;
+}
+
+/* Agent avatar */
+.agent-avatar {
+    @apply inline-flex items-center justify-center rounded-full font-semibold text-white;
+}
+
+.agent-avatar--sm {
+    @apply h-6 w-6 text-xs;
+}
+
+.agent-avatar--md {
+    @apply h-8 w-8 text-sm;
+}
+
+.agent-avatar--lg {
+    @apply h-12 w-12 text-base;
+}
+
+/* Paused agent row tint */
+.fi-ta-row.row-paused {
+    @apply bg-rose-50 dark:bg-rose-950/20;
+}
+
+/* Soul MD editor styling */
+.soul-editor {
+    @apply font-mono text-sm leading-relaxed;
+}
+
+.soul-editor textarea {
+    font-family: 'JetBrains Mono', ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace !important;
+}
+
+/* Clean card styling */
+.fi-section {
+    @apply border border-gray-200 shadow-sm dark:border-gray-700;
+}
