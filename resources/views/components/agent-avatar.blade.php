@@ -18,6 +18,7 @@
     $colorClass = $palette[crc32($name) % count($palette)];
 
     $sizeClass = match($size) {
+        'xs' => 'agent-avatar--xs',
         'sm' => 'agent-avatar--sm',
         'lg' => 'agent-avatar--lg',
         default => 'agent-avatar--md',

@@ -301,9 +301,9 @@ class TaskResource extends Resource
                                     ->label('')
                                     ->view('filament.resources.task-resource.thread-embed')
                                     ->visible(fn (Task $record): bool => $record->thread !== null),
-                                Infolists\Components\Placeholder::make('no_thread')
+                                Infolists\Components\TextEntry::make('no_thread')
                                     ->label('')
-                                    ->content('No conversation thread linked to this task.')
+                                    ->default('No conversation thread linked to this task.')
                                     ->visible(fn (Task $record): bool => $record->thread === null),
                             ]),
                     ])

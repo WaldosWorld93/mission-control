@@ -30,14 +30,9 @@ class ProjectBoard extends Page
     public function getBreadcrumbs(): array
     {
         return [
-            route('filament.app.resources.projects.index') => 'Projects',
-            route('filament.app.resources.projects.edit', $this->project) => $this->project->name,
+            url('projects') => 'Projects',
+            url("projects/{$this->project->id}/edit") => $this->project->name,
             '' => 'Board',
         ];
-    }
-
-    public static function getRouteName(?string $panel = null): string
-    {
-        return 'filament.app.pages.project-board';
     }
 }

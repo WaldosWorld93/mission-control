@@ -47,6 +47,10 @@
     @apply inline-flex items-center justify-center rounded-full font-semibold text-white;
 }
 
+.agent-avatar--xs {
+    @apply h-5 w-5 text-[10px];
+}
+
 .agent-avatar--sm {
     @apply h-6 w-6 text-xs;
 }

@@ -103,11 +103,11 @@ class ProjectResource extends Resource
                 Tables\Actions\Action::make('board')
                     ->label('Board')
                     ->icon('heroicon-o-view-columns')
-                    ->url(fn (Project $record): string => route('filament.app.pages.project-board', ['project' => $record])),
+                    ->url(fn (Project $record): string => url("projects/{$record->id}/board")),
                 Tables\Actions\Action::make('messages')
                     ->label('Messages')
                     ->icon('heroicon-o-chat-bubble-left-right')
-                    ->url(fn (Project $record): string => route('filament.app.pages.project-messages', ['project' => $record])),
+                    ->url(fn (Project $record): string => url("projects/{$record->id}/messages")),
                 Tables\Actions\EditAction::make(),
             ])
             ->bulkActions([

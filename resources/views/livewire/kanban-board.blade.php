@@ -1,6 +1,17 @@
+@php
+    $columnAccents = [
+        'blocked' => ['border' => 'bg-rose-500', 'pill-bg' => 'bg-rose-100 dark:bg-rose-900/30', 'pill-text' => 'text-rose-600 dark:text-rose-400'],
+        'backlog' => ['border' => 'bg-slate-400', 'pill-bg' => 'bg-slate-100 dark:bg-slate-800', 'pill-text' => 'text-slate-600 dark:text-slate-400'],
+        'assigned' => ['border' => 'bg-indigo-500', 'pill-bg' => 'bg-indigo-100 dark:bg-indigo-900/30', 'pill-text' => 'text-indigo-600 dark:text-indigo-400'],
+        'in_progress' => ['border' => 'bg-sky-500', 'pill-bg' => 'bg-sky-100 dark:bg-sky-900/30', 'pill-text' => 'text-sky-600 dark:text-sky-400'],
+        'in_review' => ['border' => 'bg-violet-500', 'pill-bg' => 'bg-violet-100 dark:bg-violet-900/30', 'pill-text' => 'text-violet-600 dark:text-violet-400'],
+        'done' => ['border' => 'bg-emerald-500', 'pill-bg' => 'bg-emerald-100 dark:bg-emerald-900/30', 'pill-text' => 'text-emerald-600 dark:text-emerald-400'],
+    ];
+@endphp
+
 <div>
     {{-- Filter Pills --}}
-    <div class="mb-4 flex flex-wrap items-center gap-2">
+    <div class="mb-6 flex flex-wrap items-center gap-2">
         <select wire:model.live="filterAgent"
                 class="rounded-lg border border-gray-300 bg-white px-3 py-1.5 text-sm text-gray-700 shadow-sm dark:border-gray-600 dark:bg-gray-800 dark:text-gray-300">
             <option value="">All Agents</option>
@@ -34,32 +45,33 @@
     </div>
 
     {{-- Kanban Columns --}}
-    <div class="flex gap-4 overflow-x-auto pb-4"
+    <div class="flex gap-5 overflow-x-auto pb-4"
          x-data="kanbanBoard()"
          x-on:kanban-refresh.window="$wire.$refresh()">
         @foreach (static::columns() as $statusValue => [$label, $color])
             @php
                 $columnTasks = $this->tasks->where('status.value', $statusValue);
+                $accent = $columnAccents[$statusValue];
             @endphp
             <div class="flex w-72 min-w-[18rem] flex-shrink-0 flex-col">
                 {{-- Column Header --}}
-                <div class="mb-3">
-                    <div class="flex items-center justify-between px-1">
+                <div class="mb-3 px-1">
+                    <div class="flex items-center justify-between">
                         <h3 class="text-xs font-semibold uppercase tracking-wider text-slate-500 dark:text-slate-400">
                             {{ $label }}
                         </h3>
-                        <span class="inline-flex items-center rounded-full bg-{{ $color }}-100 px-2 py-0.5 text-xs font-medium text-{{ $color }}-700 dark:bg-{{ $color }}-900/30 dark:text-{{ $color }}-400">
+                        <span class="inline-flex h-5 min-w-[20px] items-center justify-center rounded-full px-1.5 text-xs font-medium {{ $accent['pill-bg'] }} {{ $accent['pill-text'] }}">
                             {{ $columnTasks->count() }}
                         </span>
                     </div>
-                    <div class="mt-2 h-0.5 rounded-full bg-{{ $color }}-400"></div>
+                    <div class="mt-2 h-[3px] rounded-full {{ $accent['border'] }}"></div>
                 </div>
 
                 {{-- Drop Zone --}}
-                <div class="kanban-column flex min-h-[200px] flex-1 flex-col gap-2 rounded-lg p-1"
+                <div class="kanban-column flex min-h-[200px] flex-1 flex-col gap-2 rounded-lg bg-slate-50/50 p-2 dark:bg-slate-800/30"
                      data-status="{{ $statusValue }}"
                      x-ref="column_{{ $statusValue }}">
-                    @foreach ($columnTasks as $task)
+                    @forelse ($columnTasks as $task)
                         @include('livewire.partials.kanban-card', ['task' => $task])
 
                         {{-- Subtasks nested under parent --}}
@@ -70,14 +82,18 @@
                                 </div>
                             @endif
                         @endforeach
-                    @endforeach
+                    @empty
+                        <div class="flex flex-1 items-center justify-center rounded-lg border-2 border-dashed border-slate-200 dark:border-slate-700">
+                            <span class="text-xs text-slate-300 dark:text-slate-600">No tasks</span>
+                        </div>
+                    @endforelse
                 </div>
             </div>
         @endforeach
     </div>
 
     {{-- Task Detail Slide-over --}}
-    @if ($selectedTask)
+    @if ($this->selectedTask)
         <div x-data="{ open: true }"
              x-show="open"
              x-on:keydown.escape.window="open = false; $wire.closeTask()"
@@ -111,7 +127,7 @@
                             <div class="border-b border-gray-200 px-6 py-4 dark:border-gray-700">
                                 <div class="flex items-center justify-between">
                                     <h2 class="text-lg font-semibold text-gray-900 dark:text-white">
-                                        {{ $selectedTask->title }}
+                                        {{ $this->selectedTask->title }}
                                     </h2>
                                     <button @click="open = false; $wire.closeTask()"
                                             class="text-gray-400 hover:text-gray-500 dark:hover:text-gray-300">
@@ -120,7 +136,7 @@
                                 </div>
                                 <div class="mt-2 flex items-center gap-2">
                                     <span class="inline-flex items-center rounded-full px-2 py-0.5 text-xs font-medium
-                                        {{ match($selectedTask->status) {
+                                        {{ match($this->selectedTask->status) {
                                             \App\Enums\TaskStatus::Blocked => 'bg-rose-100 text-rose-700 dark:bg-rose-900/30 dark:text-rose-400',
                                             \App\Enums\TaskStatus::Backlog => 'bg-slate-100 text-slate-700 dark:bg-slate-900/30 dark:text-slate-400',
                                             \App\Enums\TaskStatus::Assigned => 'bg-indigo-100 text-indigo-700 dark:bg-indigo-900/30 dark:text-indigo-400',
@@ -129,36 +145,36 @@
                                             \App\Enums\TaskStatus::Done => 'bg-emerald-100 text-emerald-700 dark:bg-emerald-900/30 dark:text-emerald-400',
                                             \App\Enums\TaskStatus::Cancelled => 'bg-slate-100 text-slate-700 dark:bg-slate-900/30 dark:text-slate-400',
                                         } }}">
-                                        {{ $selectedTask->status->value }}
+                                        {{ $this->selectedTask->status->value }}
                                     </span>
                                     <span class="inline-flex items-center rounded-full px-2 py-0.5 text-xs font-medium
-                                        {{ match($selectedTask->priority) {
+                                        {{ match($this->selectedTask->priority) {
                                             \App\Enums\TaskPriority::Critical => 'bg-rose-100 text-rose-700 dark:bg-rose-900/30 dark:text-rose-400',
                                             \App\Enums\TaskPriority::High => 'bg-amber-100 text-amber-700 dark:bg-amber-900/30 dark:text-amber-400',
                                             \App\Enums\TaskPriority::Medium => 'bg-sky-100 text-sky-700 dark:bg-sky-900/30 dark:text-sky-400',
                                             \App\Enums\TaskPriority::Low => 'bg-slate-100 text-slate-700 dark:bg-slate-900/30 dark:text-slate-400',
                                         } }}">
-                                        {{ $selectedTask->priority->value }}
+                                        {{ $this->selectedTask->priority->value }}
                                     </span>
                                 </div>
                             </div>
 
                             {{-- Body --}}
                             <div class="flex-1 overflow-y-auto px-6 py-4">
-                                @if ($selectedTask->description)
+                                @if ($this->selectedTask->description)
                                     <div class="mb-6">
                                         <h4 class="mb-1 text-xs font-semibold uppercase tracking-wider text-slate-500 dark:text-slate-400">Description</h4>
-                                        <p class="text-sm text-gray-700 dark:text-gray-300">{{ $selectedTask->description }}</p>
+                                        <p class="text-sm text-gray-700 dark:text-gray-300">{{ $this->selectedTask->description }}</p>
                                     </div>
                                 @endif
 
                                 {{-- Assigned Agent --}}
                                 <div class="mb-6">
                                     <h4 class="mb-1 text-xs font-semibold uppercase tracking-wider text-slate-500 dark:text-slate-400">Assigned Agent</h4>
-                                    @if ($selectedTask->assignedAgent)
+                                    @if ($this->selectedTask->assignedAgent)
                                         <div class="flex items-center gap-2">
-                                            <x-agent-avatar :agent="$selectedTask->assignedAgent" size="sm" />
-                                            <span class="text-sm text-gray-700 dark:text-gray-300">{{ $selectedTask->assignedAgent->name }}</span>
+                                            <x-agent-avatar :agent="$this->selectedTask->assignedAgent" size="sm" />
+                                            <span class="text-sm text-gray-700 dark:text-gray-300">{{ $this->selectedTask->assignedAgent->name }}</span>
                                         </div>
                                     @else
                                         <span class="text-sm text-gray-400">Unassigned</span>
@@ -166,13 +182,13 @@
                                 </div>
 
                                 {{-- Dependencies --}}
-                                @if ($selectedTask->dependencies->isNotEmpty())
+                                @if ($this->selectedTask->dependencies->isNotEmpty())
                                     <div class="mb-6">
                                         <h4 class="mb-1 text-xs font-semibold uppercase tracking-wider text-slate-500 dark:text-slate-400">Blocked By</h4>
                                         <ul class="space-y-1">
-                                            @foreach ($selectedTask->dependencies as $dep)
+                                            @foreach ($this->selectedTask->dependencies as $dep)
                                                 <li class="flex items-center gap-2 text-sm">
-                                                    <x-heroicon-o-link class="h-3.5 w-3.5 text-rose-500" />
+                                                    <x-heroicon-o-lock-closed class="h-3.5 w-3.5 text-rose-500" />
                                                     <span class="text-gray-700 dark:text-gray-300">{{ $dep->title }}</span>
                                                     <span class="text-xs text-gray-400">({{ $dep->status->value }})</span>
                                                 </li>
@@ -181,11 +197,11 @@
                                     </div>
                                 @endif
 
-                                @if ($selectedTask->dependents->isNotEmpty())
+                                @if ($this->selectedTask->dependents->isNotEmpty())
                                     <div class="mb-6">
                                         <h4 class="mb-1 text-xs font-semibold uppercase tracking-wider text-slate-500 dark:text-slate-400">Blocking</h4>
                                         <ul class="space-y-1">
-                                            @foreach ($selectedTask->dependents as $dep)
+                                            @foreach ($this->selectedTask->dependents as $dep)
                                                 <li class="flex items-center gap-2 text-sm">
                                                     <x-heroicon-o-link class="h-3.5 w-3.5 text-amber-500" />
                                                     <span class="text-gray-700 dark:text-gray-300">{{ $dep->title }}</span>
@@ -199,34 +215,34 @@
                                 <div class="mb-6 grid grid-cols-2 gap-4">
                                     <div>
                                         <h4 class="text-xs font-semibold uppercase tracking-wider text-slate-500 dark:text-slate-400">Created</h4>
-                                        <span class="text-sm text-gray-700 dark:text-gray-300">{{ $selectedTask->created_at->diffForHumans() }}</span>
+                                        <span class="text-sm text-gray-700 dark:text-gray-300">{{ $this->selectedTask->created_at->diffForHumans() }}</span>
                                     </div>
-                                    @if ($selectedTask->started_at)
+                                    @if ($this->selectedTask->started_at)
                                         <div>
                                             <h4 class="text-xs font-semibold uppercase tracking-wider text-slate-500 dark:text-slate-400">Started</h4>
-                                            <span class="text-sm text-gray-700 dark:text-gray-300">{{ $selectedTask->started_at->diffForHumans() }}</span>
+                                            <span class="text-sm text-gray-700 dark:text-gray-300">{{ $this->selectedTask->started_at->diffForHumans() }}</span>
                                         </div>
                                     @endif
-                                    @if ($selectedTask->completed_at)
+                                    @if ($this->selectedTask->completed_at)
                                         <div>
                                             <h4 class="text-xs font-semibold uppercase tracking-wider text-slate-500 dark:text-slate-400">Completed</h4>
-                                            <span class="text-sm text-gray-700 dark:text-gray-300">{{ $selectedTask->completed_at->diffForHumans() }}</span>
+                                            <span class="text-sm text-gray-700 dark:text-gray-300">{{ $this->selectedTask->completed_at->diffForHumans() }}</span>
                                         </div>
                                     @endif
-                                    @if ($selectedTask->due_at)
+                                    @if ($this->selectedTask->due_at)
                                         <div>
                                             <h4 class="text-xs font-semibold uppercase tracking-wider text-slate-500 dark:text-slate-400">Due</h4>
-                                            <span class="text-sm text-gray-700 dark:text-gray-300">{{ $selectedTask->due_at->diffForHumans() }}</span>
+                                            <span class="text-sm text-gray-700 dark:text-gray-300">{{ $this->selectedTask->due_at->diffForHumans() }}</span>
                                         </div>
                                     @endif
                                 </div>
 
                                 {{-- Attempts --}}
-                                @if ($selectedTask->attempts->isNotEmpty())
+                                @if ($this->selectedTask->attempts->isNotEmpty())
                                     <div class="mb-6">
                                         <h4 class="mb-2 text-xs font-semibold uppercase tracking-wider text-slate-500 dark:text-slate-400">Attempts</h4>
                                         <div class="space-y-2">
-                                            @foreach ($selectedTask->attempts as $attempt)
+                                            @foreach ($this->selectedTask->attempts as $attempt)
                                                 <div class="rounded-lg border border-gray-200 p-3 dark:border-gray-700">
                                                     <div class="flex items-center justify-between text-sm">
                                                         <span class="text-gray-700 dark:text-gray-300">{{ $attempt->agent?->name ?? 'Unknown' }}</span>
@@ -250,11 +266,11 @@
                                 @endif
 
                                 {{-- Artifacts --}}
-                                @if ($selectedTask->artifacts->isNotEmpty())
+                                @if ($this->selectedTask->artifacts->isNotEmpty())
                                     <div class="mb-6">
                                         <h4 class="mb-2 text-xs font-semibold uppercase tracking-wider text-slate-500 dark:text-slate-400">Artifacts</h4>
                                         <div class="space-y-2">
-                                            @foreach ($selectedTask->artifacts as $artifact)
+                                            @foreach ($this->selectedTask->artifacts as $artifact)
                                                 <div class="flex items-center gap-3 rounded-lg border border-gray-200 p-3 dark:border-gray-700">
                                                     <x-heroicon-o-document class="h-5 w-5 text-gray-400" />
                                                     <div class="flex-1 min-w-0">
@@ -268,17 +284,17 @@
                                 @endif
 
                                 {{-- Conversation Thread --}}
-                                @if ($selectedTask->thread)
+                                @if ($this->selectedTask->thread)
                                     <div>
                                         <h4 class="mb-2 text-xs font-semibold uppercase tracking-wider text-slate-500 dark:text-slate-400">Conversation</h4>
-                                        <livewire:thread-chat :thread="$selectedTask->thread" :compact="true" :key="'task-thread-'.$selectedTask->thread->id" />
+                                        <livewire:thread-chat :thread="$this->selectedTask->thread" :compact="true" :key="'task-thread-'.$this->selectedTask->thread->id" />
                                     </div>
                                 @endif
                             </div>
 
                             {{-- Footer --}}
                             <div class="border-t border-gray-200 px-6 py-3 dark:border-gray-700">
-                                <a href="{{ \App\Filament\Resources\TaskResource::getUrl('view', ['record' => $selectedTask]) }}"
+                                <a href="{{ \App\Filament\Resources\TaskResource::getUrl('view', ['record' => $this->selectedTask]) }}"
                                    class="text-sm font-medium text-indigo-600 hover:text-indigo-500 dark:text-indigo-400">
                                     Open full details →
                                 </a>
