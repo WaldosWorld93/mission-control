@@ -17,6 +17,22 @@ class ThreadChat extends Component
 
     public string $newMessage = '';
 
+    /**
+     * @return array<string, string>
+     */
+    protected function getListeners(): array
+    {
+        $teamId = auth()->user()?->current_team_id;
+
+        if (! $teamId) {
+            return [];
+        }
+
+        return [
+            "echo-private:team.{$teamId},MessageCreated" => '$refresh',
+        ];
+    }
+
     public function mount(MessageThread $thread, bool $compact = false): void
     {
         $this->thread = $thread;

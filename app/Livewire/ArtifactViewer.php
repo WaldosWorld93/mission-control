@@ -21,6 +21,22 @@ class ArtifactViewer extends Component
 
     public ?int $diffFromVersion = null;
 
+    /**
+     * @return array<string, string>
+     */
+    protected function getListeners(): array
+    {
+        $teamId = auth()->user()?->current_team_id;
+
+        if (! $teamId) {
+            return [];
+        }
+
+        return [
+            "echo-private:team.{$teamId},ArtifactUploaded" => '$refresh',
+        ];
+    }
+
     public function mount(Task $task): void
     {
         $this->task = $task;

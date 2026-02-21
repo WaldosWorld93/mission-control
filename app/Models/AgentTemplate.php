@@ -17,6 +17,10 @@ class AgentTemplate extends Model
         'description',
         'soul_md_template',
         'is_lead',
+        'heartbeat_model',
+        'work_model',
+        'skill_profile',
+        'heartbeat_interval_seconds',
         'default_skills',
         'sort_order',
     ];
@@ -26,6 +30,7 @@ class AgentTemplate extends Model
         return [
             'is_lead' => 'boolean',
             'default_skills' => 'array',
+            'heartbeat_interval_seconds' => 'integer',
             'sort_order' => 'integer',
         ];
     }

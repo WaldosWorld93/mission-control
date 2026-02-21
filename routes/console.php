@@ -9,3 +9,4 @@ Artisan::command('inspire', function () {
 })->purpose('Display an inspiring quote');
 
 Schedule::command('artifacts:cleanup-unconfirmed')->hourly();
+Schedule::command('tasks:detect-stuck')->everyFiveMinutes();

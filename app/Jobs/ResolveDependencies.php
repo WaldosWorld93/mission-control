@@ -5,6 +5,7 @@ namespace App\Jobs;
 use App\Enums\AttemptStatus;
 use App\Enums\DependencyType;
 use App\Enums\TaskStatus;
+use App\Events\TaskUnblocked;
 use App\Models\Task;
 use App\Services\TeamContext;
 use Illuminate\Contracts\Queue\ShouldBeUnique;
@@ -56,6 +57,20 @@ class ResolveDependencies implements ShouldBeUnique, ShouldQueue
 
         $newStatus = $task->assigned_agent_id ? TaskStatus::Assigned : TaskStatus::Backlog;
         $task->update(['status' => $newStatus]);
+
+        // Find which dependency was just resolved (the one that's now done)
+        $resolvedDep = $task->dependencies()
+            ->where('status', TaskStatus::Done)
+            ->latest('updated_at')
+            ->first();
+
+        TaskUnblocked::dispatch(
+            $task->team_id,
+            $task->id,
+            $task->title,
+            $resolvedDep?->title ?? 'dependency',
+            $task->project_id,
+        );
 
         // Create attempt if transitioning to assigned
         if ($newStatus === TaskStatus::Assigned && $task->assigned_agent_id) {

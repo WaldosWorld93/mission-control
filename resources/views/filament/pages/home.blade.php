@@ -153,7 +153,10 @@
 
         {{-- Activity Feed (1/3 width) --}}
         <div>
-            <h3 class="mb-3 text-sm font-semibold uppercase tracking-wider text-slate-500 dark:text-slate-400">Recent Activity</h3>
+            <div class="mb-3 flex items-center justify-between">
+                <h3 class="text-sm font-semibold uppercase tracking-wider text-slate-500 dark:text-slate-400">Recent Activity</h3>
+                <a href="{{ url('activity') }}" class="text-xs text-indigo-500 hover:text-indigo-700 dark:text-indigo-400">View all</a>
+            </div>
 
             @if ($activityFeed->isEmpty())
                 <div class="flex flex-col items-center justify-center rounded-xl border-2 border-dashed border-slate-200 py-12 dark:border-slate-700">

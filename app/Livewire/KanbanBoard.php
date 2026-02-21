@@ -22,6 +22,24 @@ class KanbanBoard extends Component
 
     public ?string $selectedTaskId = null;
 
+    /**
+     * @return array<string, string>
+     */
+    protected function getListeners(): array
+    {
+        $teamId = auth()->user()?->current_team_id;
+
+        if (! $teamId) {
+            return [];
+        }
+
+        return [
+            "echo-private:team.{$teamId},TaskStatusChanged" => '$refresh',
+            "echo-private:team.{$teamId},TaskClaimed" => '$refresh',
+            "echo-private:team.{$teamId},TaskUnblocked" => '$refresh',
+        ];
+    }
+
     /** @var array<string, string> */
     public const COLUMN_COLORS = [
         'blocked' => 'rose',

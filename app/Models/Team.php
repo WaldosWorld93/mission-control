@@ -20,12 +20,14 @@ class Team extends Model
         'plan',
         'default_heartbeat_model',
         'default_work_model',
+        'onboarding_completed_at',
     ];
 
     protected function casts(): array
     {
         return [
             'plan' => TeamPlan::class,
+            'onboarding_completed_at' => 'datetime',
         ];
     }
 

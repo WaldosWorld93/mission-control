@@ -7,6 +7,8 @@ use App\Enums\DependencyType;
 use App\Enums\MessageType;
 use App\Enums\TaskPriority;
 use App\Enums\TaskStatus;
+use App\Events\TaskClaimed;
+use App\Events\TaskStatusChanged;
 use App\Http\Controllers\Controller;
 use App\Http\Requests\Api\V1\CreateTaskRequest;
 use App\Http\Requests\Api\V1\ListTasksRequest;
@@ -175,6 +177,7 @@ class TaskController extends Controller
         $agent = app('agent');
         $validated = $request->validated();
         $newStatus = null;
+        $oldStatus = $task->status;
 
         if (isset($validated['status'])) {
             $newStatus = TaskStatus::from($validated['status']);
@@ -249,6 +252,16 @@ class TaskController extends Controller
             if ($newStatus === TaskStatus::Done && $task->parent_task_id) {
                 $this->checkParentCompletion($task);
             }
+
+            TaskStatusChanged::dispatch(
+                $task->team_id,
+                $task->id,
+                $task->title,
+                $oldStatus->value,
+                $newStatus->value,
+                $agent->name,
+                $task->project_id,
+            );
         }
 
         return response()->json(['data' => $task->fresh()]);
@@ -285,6 +298,14 @@ class TaskController extends Controller
             'started_at' => now(),
             'status' => AttemptStatus::Active,
         ]);
+
+        TaskClaimed::dispatch(
+            $task->team_id,
+            $task->id,
+            $task->title,
+            $agent->name,
+            $task->project_id,
+        );
 
         return response()->json(['data' => $task]);
     }

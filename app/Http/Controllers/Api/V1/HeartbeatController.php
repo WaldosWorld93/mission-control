@@ -6,6 +6,9 @@ use App\Enums\AgentStatus;
 use App\Enums\AttemptStatus;
 use App\Enums\ProjectStatus;
 use App\Enums\TaskStatus;
+use App\Events\AgentHeartbeatReceived;
+use App\Events\AgentPaused;
+use App\Events\AgentStatusChanged;
 use App\Http\Controllers\Controller;
 use App\Http\Requests\Api\V1\HeartbeatRequest;
 use App\Models\Heartbeat;
@@ -53,6 +56,14 @@ class HeartbeatController extends Controller
                     'paused_at' => now(),
                 ]);
 
+                AgentPaused::dispatch(
+                    $agent->team_id,
+                    $agent->id,
+                    $agent->name,
+                    'circuit_breaker',
+                    $agent->consecutive_errors,
+                );
+
                 return response()->json([
                     'status' => 'paused',
                     'reason' => 'circuit_breaker',
@@ -66,10 +77,24 @@ class HeartbeatController extends Controller
         }
 
         // Update agent status and heartbeat time
+        $oldStatus = $agent->status;
+        $newStatus = AgentStatus::tryFrom($validated['status'] ?? '') ?? $agent->status;
+
         $agent->update([
-            'status' => AgentStatus::tryFrom($validated['status'] ?? '') ?? $agent->status,
+            'status' => $newStatus,
             'last_heartbeat_at' => now(),
         ]);
+
+        // Broadcast status change if different
+        if ($oldStatus !== $newStatus) {
+            AgentStatusChanged::dispatch(
+                $agent->team_id,
+                $agent->id,
+                $agent->name,
+                $oldStatus->value,
+                $newStatus->value,
+            );
+        }
 
         // Build assigned tasks (never blocked)
         $tasks = $agent->assignedTasks()
@@ -199,6 +224,16 @@ class HeartbeatController extends Controller
                 'active_projects' => $activeProjects,
             ],
         ];
+
+        // Broadcast heartbeat received
+        $currentTask = $tasks->first();
+        AgentHeartbeatReceived::dispatch(
+            $agent->team_id,
+            $agent->id,
+            $agent->name,
+            $newStatus->value,
+            $currentTask['title'] ?? null,
+        );
 
         // Log heartbeat
         Heartbeat::create([

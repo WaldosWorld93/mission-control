@@ -17,6 +17,7 @@ class SquadTemplate extends Model
         'use_case',
         'agent_configs',
         'is_public',
+        'estimated_daily_cost',
         'created_by_team_id',
     ];
 
@@ -25,6 +26,7 @@ class SquadTemplate extends Model
         return [
             'agent_configs' => 'array',
             'is_public' => 'boolean',
+            'estimated_daily_cost' => 'decimal:2',
         ];
     }
 

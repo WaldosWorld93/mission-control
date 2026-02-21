@@ -81,6 +81,10 @@ class AdminPanelProvider extends PanelProvider
                                 ->icon('heroicon-o-clipboard-document-list')
                                 ->isActiveWhen(fn (): bool => request()->routeIs('filament.app.resources.tasks.*'))
                                 ->url(TaskResource::getUrl()),
+                            NavigationItem::make('Templates')
+                                ->icon('heroicon-o-square-3-stack-3d')
+                                ->isActiveWhen(fn (): bool => request()->is('templates*'))
+                                ->url(url('templates')),
                         ]),
                 ]);
 
@@ -97,6 +101,7 @@ class AdminPanelProvider extends PanelProvider
                 DisableBladeIconComponents::class,
                 DispatchServingFilamentEvent::class,
                 \App\Http\Middleware\SetFilamentTeamContext::class,
+                \App\Http\Middleware\RedirectIfOnboardingIncomplete::class,
             ])
             ->authMiddleware([
                 Authenticate::class,

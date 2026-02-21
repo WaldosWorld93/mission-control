@@ -3,6 +3,7 @@
 namespace App\Http\Controllers\Api\V1;
 
 use App\Enums\MessageType;
+use App\Events\MessageCreated;
 use App\Http\Controllers\Controller;
 use App\Http\Requests\Api\V1\CreateMessageRequest;
 use App\Http\Requests\Api\V1\ListMessagesRequest;
@@ -11,6 +12,7 @@ use App\Models\MessageThread;
 use App\Services\MentionParser;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Str;
 
 class MessageController extends Controller
 {
@@ -61,7 +63,19 @@ class MessageController extends Controller
             return $message;
         });
 
-        return response()->json(['data' => $message->load('thread')], 201);
+        $message->load('thread');
+
+        MessageCreated::dispatch(
+            $agent->team_id,
+            $message->id,
+            $agent->name,
+            Str::limit($message->content, 80),
+            $message->thread?->subject,
+            $message->thread_id,
+            $message->project_id,
+        );
+
+        return response()->json(['data' => $message], 201);
     }
 
     public function index(ListMessagesRequest $request): JsonResponse

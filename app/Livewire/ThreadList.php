@@ -13,6 +13,22 @@ class ThreadList extends Component
 
     public ?string $selectedThreadId = null;
 
+    /**
+     * @return array<string, string>
+     */
+    protected function getListeners(): array
+    {
+        $teamId = auth()->user()?->current_team_id;
+
+        if (! $teamId) {
+            return [];
+        }
+
+        return [
+            "echo-private:team.{$teamId},MessageCreated" => '$refresh',
+        ];
+    }
+
     public function mount(Project $project): void
     {
         $this->project = $project;

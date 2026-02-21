@@ -29,6 +29,26 @@ class Home extends Page
     protected static ?string $slug = 'home';
 
     /**
+     * @return array<string, string>
+     */
+    protected function getListeners(): array
+    {
+        $teamId = auth()->user()?->current_team_id;
+
+        if (! $teamId) {
+            return [];
+        }
+
+        return [
+            "echo-private:team.{$teamId},AgentHeartbeatReceived" => '$refresh',
+            "echo-private:team.{$teamId},AgentStatusChanged" => '$refresh',
+            "echo-private:team.{$teamId},AgentPaused" => '$refresh',
+            "echo-private:team.{$teamId},TaskStatusChanged" => '$refresh',
+            "echo-private:team.{$teamId},StuckTaskDetected" => '$refresh',
+        ];
+    }
+
+    /**
      * @return array<string, mixed>
      */
     protected function getViewData(): array

@@ -3,6 +3,7 @@
 namespace App\Http\Controllers\Api\V1;
 
 use App\Enums\ArtifactType;
+use App\Events\ArtifactUploaded;
 use App\Http\Controllers\Controller;
 use App\Http\Requests\Api\V1\CreateArtifactRequest;
 use App\Http\Requests\Api\V1\ListArtifactsRequest;
@@ -63,6 +64,18 @@ class ArtifactController extends Controller
 
             return TaskArtifact::create($artifactData);
         });
+
+        // Broadcast for inline uploads (confirmed immediately)
+        if ($artifact->confirmed_at) {
+            ArtifactUploaded::dispatch(
+                $task->team_id,
+                $task->id,
+                $task->title,
+                $artifact->filename,
+                $agent->name,
+                $task->project_id,
+            );
+        }
 
         $response = ['data' => $artifact];
 
@@ -154,6 +167,18 @@ class ArtifactController extends Controller
             'metadata' => array_merge($artifact->metadata ?? [], $metadata),
         ]);
 
+        $artifact->load('task');
+        $agent = app('agent');
+
+        ArtifactUploaded::dispatch(
+            $artifact->task->team_id,
+            $artifact->task_id,
+            $artifact->task->title,
+            $artifact->filename,
+            $agent->name,
+            $artifact->task->project_id,
+        );
+
         return response()->json(['data' => $artifact->fresh()]);
     }
 
@@ -183,6 +208,18 @@ class ArtifactController extends Controller
             'content_text' => $contentText,
             'metadata' => array_merge($artifact->metadata ?? [], $metadata),
         ]);
+
+        $artifact->load('task');
+        $agent = app('agent');
+
+        ArtifactUploaded::dispatch(
+            $artifact->task->team_id,
+            $artifact->task_id,
+            $artifact->task->title,
+            $artifact->filename,
+            $agent->name,
+            $artifact->task->project_id,
+        );
 
         return response()->json(['data' => $artifact->fresh()]);
     }
