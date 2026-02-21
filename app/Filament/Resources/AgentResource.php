@@ -21,6 +21,8 @@ class AgentResource extends Resource
 
     protected static ?string $recordTitleAttribute = 'name';
 
+    protected static bool $shouldRegisterNavigation = false;
+
     public static function form(Form $form): Form
     {
         return $form
@@ -120,7 +122,10 @@ class AgentResource extends Resource
                     Tables\Actions\DeleteBulkAction::make(),
                 ]),
             ])
-            ->recordClasses(fn (Agent $record) => $record->is_paused ? 'row-paused' : '');
+            ->recordClasses(fn (Agent $record) => $record->is_paused ? 'row-paused' : '')
+            ->emptyStateHeading('No agents yet')
+            ->emptyStateDescription('Create an agent to start coordinating your AI workforce.')
+            ->emptyStateIcon('heroicon-o-cpu-chip');
     }
 
     public static function infolist(Infolist $infolist): Infolist

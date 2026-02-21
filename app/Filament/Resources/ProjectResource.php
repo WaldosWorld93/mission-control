@@ -20,6 +20,8 @@ class ProjectResource extends Resource
 
     protected static ?string $recordTitleAttribute = 'name';
 
+    protected static bool $shouldRegisterNavigation = false;
+
     public static function form(Form $form): Form
     {
         return $form
@@ -114,7 +116,10 @@ class ProjectResource extends Resource
                 Tables\Actions\BulkActionGroup::make([
                     Tables\Actions\DeleteBulkAction::make(),
                 ]),
-            ]);
+            ])
+            ->emptyStateHeading('No projects yet')
+            ->emptyStateDescription('Create a project to start organizing your agents\' work.')
+            ->emptyStateIcon('heroicon-o-folder');
     }
 
     public static function getRelations(): array

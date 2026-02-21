@@ -23,6 +23,8 @@ class TaskResource extends Resource
 
     protected static ?string $recordTitleAttribute = 'title';
 
+    protected static bool $shouldRegisterNavigation = false;
+
     public static function form(Form $form): Form
     {
         return $form
@@ -152,7 +154,10 @@ class TaskResource extends Resource
                     Tables\Actions\DeleteBulkAction::make(),
                 ]),
             ])
-            ->defaultSort('updated_at', 'desc');
+            ->defaultSort('updated_at', 'desc')
+            ->emptyStateHeading('No tasks yet')
+            ->emptyStateDescription('Create a task to start tracking work across your projects.')
+            ->emptyStateIcon('heroicon-o-clipboard-document-list');
     }
 
     public static function infolist(Infolist $infolist): Infolist
@@ -277,22 +282,9 @@ class TaskResource extends Resource
                         Infolists\Components\Tabs\Tab::make('Artifacts')
                             ->icon('heroicon-o-paper-clip')
                             ->schema([
-                                Infolists\Components\RepeatableEntry::make('artifacts')
+                                Infolists\Components\ViewEntry::make('artifacts_viewer')
                                     ->label('')
-                                    ->schema([
-                                        Infolists\Components\TextEntry::make('display_name')
-                                            ->label('File'),
-                                        Infolists\Components\TextEntry::make('artifact_type')
-                                            ->label('Type')
-                                            ->badge(),
-                                        Infolists\Components\TextEntry::make('size_bytes')
-                                            ->label('Size')
-                                            ->formatStateUsing(fn (?int $state): string => $state ? number_format($state / 1024, 1).' KB' : '—'),
-                                        Infolists\Components\TextEntry::make('version')
-                                            ->label('v'),
-                                    ])
-                                    ->columns(4)
-                                    ->placeholder('No artifacts.'),
+                                    ->view('filament.resources.task-resource.artifact-embed'),
                             ]),
                         Infolists\Components\Tabs\Tab::make('Conversation')
                             ->icon('heroicon-o-chat-bubble-left-right')
