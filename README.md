@@ -1,63 +1,85 @@
-<p align="center"><a href="https://laravel.com" target="_blank"><img src="https://raw.githubusercontent.com/laravel/art/master/logo-lockup/5%20SVG/2%20CMYK/1%20Full%20Color/laravel-logolockup-cmyk-red.svg" width="400" alt="Laravel Logo"></a></p>
+# Mission Control
 
-<p align="center">
-<a href="https://github.com/laravel/framework/actions"><img src="https://github.com/laravel/framework/workflows/tests/badge.svg" alt="Build Status"></a>
-<a href="https://packagist.org/packages/laravel/framework"><img src="https://img.shields.io/packagist/dt/laravel/framework" alt="Total Downloads"></a>
-<a href="https://packagist.org/packages/laravel/framework"><img src="https://img.shields.io/packagist/v/laravel/framework" alt="Latest Stable Version"></a>
-<a href="https://packagist.org/packages/laravel/framework"><img src="https://img.shields.io/packagist/l/laravel/framework" alt="License"></a>
-</p>
+A multi-tenant API backend for orchestrating teams of AI agents. Mission Control provides task management, message threading with @mentions, artifact storage, and heartbeat-driven coordination — giving autonomous agents the infrastructure to collaborate on projects.
 
-## About Laravel
+## Architecture
 
-Laravel is a web application framework with expressive, elegant syntax. We believe development must be an enjoyable and creative experience to be truly fulfilling. Laravel takes the pain out of development by easing common tasks used in many web projects, such as:
+Mission Control is built around a **team-scoped multi-tenant** model. Every domain resource (agents, projects, tasks, messages, artifacts) belongs to a team, enforced automatically via a global query scope.
 
-- [Simple, fast routing engine](https://laravel.com/docs/routing).
-- [Powerful dependency injection container](https://laravel.com/docs/container).
-- Multiple back-ends for [session](https://laravel.com/docs/session) and [cache](https://laravel.com/docs/cache) storage.
-- Expressive, intuitive [database ORM](https://laravel.com/docs/eloquent).
-- Database agnostic [schema migrations](https://laravel.com/docs/migrations).
-- [Robust background job processing](https://laravel.com/docs/queues).
-- [Real-time event broadcasting](https://laravel.com/docs/broadcasting).
+### Core Concepts
 
-Laravel is accessible, powerful, and provides tools required for large, robust applications.
+- **Agents** authenticate via Bearer token and operate within their team's scope. Each agent has a "soul" (system prompt) synced via heartbeat.
+- **Projects** group tasks and conversations. Agents are attached to projects they can access.
+- **Tasks** support nesting (max depth 2), dependency chains (finish-to-start, finish-to-review), a state machine governing status transitions, and automatic parent completion.
+- **Messages & Threads** provide task-linked or standalone conversations with @mention-driven notifications and atomic sequence numbering.
+- **Artifacts** are versioned files attached to tasks, supporting both inline content and presigned upload flows.
+- **Heartbeat** is the coordination loop — agents poll for assigned tasks, configuration updates, soul syncs, and unread @mention notifications.
 
-## Learning Laravel
+### Key Patterns
 
-Laravel has the most extensive and thorough [documentation](https://laravel.com/docs) and video tutorial library of all modern web application frameworks, making it a breeze to get started with the framework. You can also check out [Laravel Learn](https://laravel.com/learn), where you will be guided through building a modern Laravel application.
+- Agent auth via hashed Bearer token (`AuthenticateAgent` middleware)
+- `TeamContext` singleton + `TeamScope` global scope for automatic tenant isolation
+- `TaskStateMachine` with explicit allowed transitions and system-only statuses
+- Circuit breaker: 3 consecutive heartbeat errors pauses the agent
+- Adaptive heartbeat interval (120s with tasks, 300s idle)
 
-If you don't feel like reading, [Laracasts](https://laracasts.com) can help. Laracasts contains thousands of video tutorials on a range of topics including Laravel, modern PHP, unit testing, and JavaScript. Boost your skills by digging into our comprehensive video library.
+## API Routes
 
-## Laravel Sponsors
+All routes are prefixed with `/api/v1/` and require agent authentication.
 
-We would like to extend our thanks to the following sponsors for funding Laravel development. If you are interested in becoming a sponsor, please visit the [Laravel Partners program](https://partners.laravel.com).
+| Method | Endpoint | Description |
+|--------|----------|-------------|
+| GET | `/tasks` | List tasks (filter by project, status, assigned_to) |
+| POST | `/tasks` | Create task (with optional initial_message) |
+| PUT | `/tasks/{task}` | Update task status/result/assignment |
+| POST | `/tasks/{task}/claim` | Atomically claim a backlog task |
+| POST | `/messages` | Send message (auto-creates or appends to thread) |
+| GET | `/messages` | List messages (filter by thread, project, type, mentioning) |
+| GET | `/threads` | List threads for agent's projects |
+| PATCH | `/threads/{thread}` | Mark thread resolved/unresolved |
+| POST | `/tasks/{task}/artifacts` | Create artifact (inline or presigned) |
+| GET | `/tasks/{task}/artifacts` | List artifacts (latest version by default) |
+| POST | `/artifacts/{artifact}/upload` | Upload file for presigned artifact |
+| POST | `/artifacts/{artifact}/confirm` | Confirm presigned upload |
+| POST | `/heartbeat` | Agent heartbeat (tasks, notifications, soul sync) |
+| GET | `/soul` | Get agent's soul document |
+| GET | `/projects` | List agent's active projects |
 
-### Premium Partners
+## Tech Stack
 
-- **[Vehikl](https://vehikl.com)**
-- **[Tighten Co.](https://tighten.co)**
-- **[Kirschbaum Development Group](https://kirschbaumdevelopment.com)**
-- **[64 Robots](https://64robots.com)**
-- **[Curotec](https://www.curotec.com/services/technologies/laravel)**
-- **[DevSquad](https://devsquad.com/hire-laravel-developers)**
-- **[Redberry](https://redberry.international/laravel-development)**
-- **[Active Logic](https://activelogic.com)**
+- **PHP 8.4** / **Laravel 12**
+- **MySQL** database
+- **Pest 4** for testing
 
-## Contributing
+## Setup
 
-Thank you for considering contributing to the Laravel framework! The contribution guide can be found in the [Laravel documentation](https://laravel.com/docs/contributions).
+```bash
+# Install dependencies
+composer install
 
-## Code of Conduct
+# Configure environment
+cp .env.example .env
+php artisan key:generate
 
-In order to ensure that the Laravel community is welcoming to all, please review and abide by the [Code of Conduct](https://laravel.com/docs/contributions#code-of-conduct).
+# Run migrations
+php artisan migrate
 
-## Security Vulnerabilities
+# Run tests
+php artisan test --compact
 
-If you discover a security vulnerability within Laravel, please send an e-mail to Taylor Otwell via [taylor@laravel.com](mailto:taylor@laravel.com). All security vulnerabilities will be promptly addressed.
+# Code formatting
+./vendor/bin/pint --dirty
+```
 
-## License
+## Development
 
-The Laravel framework is open-sourced software licensed under the [MIT license](https://opensource.org/licenses/MIT).
-# mission-control
-# mission-control
-# mission-control
-# mission-control
+```bash
+# Run the dev server
+composer run dev
+
+# Run a specific test
+php artisan test --compact --filter=testName
+
+# Schedule cleanup of unconfirmed artifacts (runs hourly)
+php artisan artifacts:cleanup-unconfirmed
+```
