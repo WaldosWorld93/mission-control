@@ -1,4 +1,5 @@
 <x-filament-panels::page>
+    <div style="max-width: 64rem; margin: 0 auto; padding-left: 2rem; padding-right: 2rem;">
     {{-- Quick Stats --}}
     <div class="grid grid-cols-2 gap-4 sm:grid-cols-4">
         <div class="rounded-xl border border-gray-200 bg-white p-4 dark:border-gray-700 dark:bg-gray-800">
@@ -185,5 +186,6 @@
                 </div>
             @endif
         </div>
+    </div>
     </div>
 </x-filament-panels::page>

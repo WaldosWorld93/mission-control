@@ -22,10 +22,20 @@ class RedirectIfOnboardingIncomplete
             return $next($request);
         }
 
-        $onboardingPaths = ['onboarding', 'templates', 'templates/deployed'];
         $currentPath = trim($request->path(), '/');
 
-        if (in_array($currentPath, $onboardingPaths)) {
+        // Allow onboarding-related paths
+        if (in_array($currentPath, ['onboarding', 'templates', 'templates/deployed', 'setup/squad'])) {
+            return $next($request);
+        }
+
+        // Allow agent setup pages (agents/{id}/setup)
+        if (preg_match('#^agents/[^/]+/setup$#', $currentPath)) {
+            return $next($request);
+        }
+
+        // Allow agent resource pages (for manual path)
+        if (str_starts_with($currentPath, 'agents/')) {
             return $next($request);
         }
 

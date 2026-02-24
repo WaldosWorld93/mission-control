@@ -1,4 +1,5 @@
 <x-filament-panels::page>
+    <div style="max-width: 64rem; margin: 0 auto; padding-left: 2rem; padding-right: 2rem;">
     @if (empty($tokens))
         <div class="flex flex-col items-center justify-center rounded-xl border-2 border-dashed border-gray-200 py-12 dark:border-gray-700">
             <x-heroicon-o-check-circle class="mb-3 h-8 w-8 text-gray-300 dark:text-gray-600" />
@@ -62,13 +63,15 @@
             </div>
 
             <div class="flex items-center gap-3">
-                <a href="{{ url('home') }}" class="inline-flex items-center gap-2 rounded-lg bg-indigo-600 px-4 py-2 text-sm font-medium text-white shadow-sm hover:bg-indigo-500 transition-colors">
-                    Go to Dashboard
+                <a href="{{ url('setup/squad') }}" class="inline-flex items-center gap-2 rounded-lg bg-indigo-600 px-4 py-2 text-sm font-medium text-white shadow-sm hover:bg-indigo-500 transition-colors">
+                    Continue to Setup
+                    <x-heroicon-o-arrow-right class="h-4 w-4" />
                 </a>
-                <a href="{{ url('templates') }}" class="text-sm text-gray-500 hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-300">
-                    Deploy another template
+                <a href="{{ url('home') }}" class="text-sm text-gray-500 hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-300">
+                    Skip to dashboard
                 </a>
             </div>
         </div>
     @endif
+    </div>
 </x-filament-panels::page>

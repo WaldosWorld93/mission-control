@@ -49,16 +49,23 @@ class TemplateGallery extends Page
     public function deploy(int $templateId): void
     {
         $template = SquadTemplate::with('agentTemplates')->findOrFail($templateId);
-        $team = auth()->user()->currentTeam;
+        $user = auth()->user();
+        $team = $user->currentTeam;
 
         if (! $team) {
-            Notification::make()
-                ->title('No team selected')
-                ->body('Please select a team before deploying a template.')
-                ->danger()
-                ->send();
+            $team = $user->teams()->first() ?? $user->ownedTeams()->first();
 
-            return;
+            if (! $team) {
+                Notification::make()
+                    ->title('No team found')
+                    ->body('You must belong to a team before deploying a template.')
+                    ->danger()
+                    ->send();
+
+                return;
+            }
+
+            $user->update(['current_team_id' => $team->id]);
         }
 
         $tokens = [];
@@ -116,10 +123,10 @@ class TemplateGallery extends Page
             }
         });
 
-        session()->flash('deployed_tokens', $tokens);
-        session()->flash('deployed_template', $template->name);
+        session()->put('deployed_tokens', $tokens);
+        session()->put('deployed_template', $template->name);
 
-        $this->redirect(url('templates/deployed'), navigate: true);
+        $this->redirect(url('setup/squad'), navigate: true);
     }
 
     private function projectColor(string $name): string

@@ -1,3 +1,5 @@
 <x-filament-panels::page>
-    <livewire:activity-feed />
+    <div style="max-width: 64rem; margin: 0 auto; padding-left: 2rem; padding-right: 2rem;">
+        <livewire:activity-feed />
+    </div>
 </x-filament-panels::page>

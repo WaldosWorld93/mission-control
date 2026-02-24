@@ -97,14 +97,18 @@ it('creates agents with soul_md from templates', function () {
     });
 });
 
-it('flashes tokens to session after deploy', function () {
+it('stores tokens in session and redirects to squad checklist after deploy', function () {
     $template = SquadTemplate::where('name', 'Customer Support Squad')->first();
 
     $this->actingAs($this->user);
 
     Livewire::test(\App\Filament\Pages\TemplateGallery::class)
         ->call('deploy', $template->id)
-        ->assertRedirect('/templates/deployed');
+        ->assertRedirect('/setup/squad');
+
+    expect(session('deployed_tokens'))->toBeArray()
+        ->and(session('deployed_tokens'))->toHaveCount(4)
+        ->and(session('deployed_tokens')[0])->toHaveKeys(['name', 'token']);
 });
 
 it('deploys templates atomically — failure rolls back', function () {
