@@ -9,6 +9,7 @@ use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsToMany;
 use Illuminate\Database\Eloquent\Relations\HasMany;
+use Illuminate\Support\Str;
 
 class Agent extends Model
 {
@@ -104,5 +105,19 @@ class Agent extends Model
     public function scopeLead($query)
     {
         return $query->where('is_lead', true);
+    }
+
+    public function getSlugAttribute(): string
+    {
+        return Str::slug($this->name);
+    }
+
+    public function getWorkspacePathAttribute(): string
+    {
+        if ($this->is_lead) {
+            return '~/.openclaw/workspace';
+        }
+
+        return '~/.openclaw/workspace-'.$this->slug;
     }
 }
