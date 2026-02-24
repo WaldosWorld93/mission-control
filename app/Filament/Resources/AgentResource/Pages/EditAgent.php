@@ -26,12 +26,10 @@ class EditAgent extends EditRecord
                     $token = Str::random(64);
                     $this->record->update(['api_token' => hash('sha256', $token)]);
 
-                    Notification::make()
-                        ->title('New API Token Generated')
-                        ->body("Copy this token now — it won't be shown again:\n\n`{$token}`")
-                        ->persistent()
-                        ->success()
-                        ->send();
+                    // Store token in session and redirect to setup page
+                    session(["agent_token_{$this->record->id}" => $token]);
+
+                    $this->redirect(url("agents/{$this->record->id}/setup"));
                 }),
             Actions\Action::make('unpause')
                 ->label('Un-pause Agent')

@@ -397,14 +397,13 @@ mkdir -p {{ $workspacePath }}/skills/mission-control-tasks</x-code-block>
                 </p>
 
                 @if ($plainToken)
-                    @if ($tokenIsNew)
-                        <div class="flex items-center gap-2 rounded-lg p-3" style="background-color: #ecfdf5; border: 1px solid #a7f3d0;">
-                            <x-heroicon-o-shield-check class="h-5 w-5 flex-shrink-0" style="color: #059669;" />
-                            <p class="text-sm" style="color: #065f46;">
-                                <strong>New token generated.</strong> Copy it now — it won't be shown again.
-                            </p>
+                    <div class="flex items-start gap-3" style="background-color: #fffbeb; border: 1px solid #f59e0b; border-radius: 8px; padding: 12px 16px;">
+                        <x-heroicon-o-exclamation-triangle class="h-5 w-5 flex-shrink-0 mt-0.5" style="color: #f59e0b;" />
+                        <div>
+                            <p style="color: #92400e; font-weight: 600;">Save this token now — it won't be shown again.</p>
+                            <p class="mt-1 text-sm" style="color: #92400e;">Copy the environment variables below and store them somewhere safe. Once you leave this page, the token cannot be retrieved.</p>
                         </div>
-                    @endif
+                    </div>
 
                     <x-code-block label="Environment Variables">MC_API_URL={{ $apiUrl }}
 MC_AGENT_TOKEN={{ $plainToken }}</x-code-block>

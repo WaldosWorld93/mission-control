@@ -3,7 +3,6 @@
 namespace App\Filament\Resources\AgentResource\Pages;
 
 use App\Filament\Resources\AgentResource;
-use Filament\Notifications\Notification;
 use Filament\Resources\Pages\CreateRecord;
 use Illuminate\Support\Str;
 
@@ -31,7 +30,10 @@ class CreateAgent extends CreateRecord
             ]);
         }
 
-        // Store token in session for the setup page
+        // Store token in session for the setup page (persists across navigation)
+        session(["agent_token_{$record->id}" => $this->generatedToken]);
+
+        // Also store in deployed_tokens for template deployment compatibility
         $deployedTokens = session('deployed_tokens', []);
         $deployedTokens[] = [
             'name' => $record->name,
@@ -39,13 +41,6 @@ class CreateAgent extends CreateRecord
         ];
         session(['deployed_tokens' => $deployedTokens]);
         session()->flash('agent_created', true);
-
-        Notification::make()
-            ->title('API Token Generated')
-            ->body("Copy this token now — it won't be shown again:\n\n`{$this->generatedToken}`")
-            ->persistent()
-            ->success()
-            ->send();
     }
 
     protected function getRedirectUrl(): string

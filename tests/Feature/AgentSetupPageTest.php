@@ -106,7 +106,7 @@ it('can regenerate the agent token', function () {
         ->call('regenerateToken')
         ->assertSet('plainToken', fn ($value) => $value !== null && strlen($value) === 64)
         ->assertSet('tokenIsNew', true)
-        ->assertSeeHtml('New token generated');
+        ->assertSeeHtml('Save this token now');
 
     $this->agent->refresh();
     expect($this->agent->api_token)->not->toBe($oldTokenHash);

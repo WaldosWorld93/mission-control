@@ -81,11 +81,52 @@ it('stores token in session for setup page after create', function () {
         ])
         ->call('create');
 
+    $agent = Agent::where('name', 'Token Agent')->first();
+
+    // Check persistent session key
+    $persistentToken = session("agent_token_{$agent->id}");
+    expect($persistentToken)->not->toBeNull()->toHaveLength(64);
+
+    // Check deployed_tokens for template compatibility
     $deployedTokens = session('deployed_tokens');
     expect($deployedTokens)->toBeArray()
         ->and($deployedTokens)->toHaveCount(1)
         ->and($deployedTokens[0]['name'])->toBe('Token Agent')
         ->and($deployedTokens[0]['token'])->toHaveLength(64);
+});
+
+it('displays token on setup page from persistent session and clears it', function () {
+    $this->actingAs($this->user);
+
+    $agent = Agent::factory()->create([
+        'team_id' => $this->team->id,
+        'name' => 'Persist Agent',
+    ]);
+
+    $token = 'test-persistent-token-'.str_repeat('x', 44);
+
+    $this->actingAs($this->user)
+        ->withSession(["agent_token_{$agent->id}" => $token])
+        ->get("/agents/{$agent->id}/setup")
+        ->assertSee($token)
+        ->assertSeeText('Save this token now');
+
+    // Token should be cleared from session after page load
+    expect(session("agent_token_{$agent->id}"))->toBeNull();
+});
+
+it('shows token warning banner only when token is visible', function () {
+    $this->actingAs($this->user);
+
+    $agent = Agent::factory()->create([
+        'team_id' => $this->team->id,
+        'name' => 'No Token Agent',
+    ]);
+
+    // Without token in session, warning banner should not appear
+    $this->actingAs($this->user)
+        ->get("/agents/{$agent->id}/setup")
+        ->assertDontSeeText('Save this token now');
 });
 
 it('shows success banner on setup page after agent creation', function () {

@@ -117,6 +117,11 @@ class AgentResource extends Resource
                     ->label('Paused'),
             ])
             ->actions([
+                Tables\Actions\Action::make('setup')
+                    ->label('Setup')
+                    ->icon('heroicon-o-cog-6-tooth')
+                    ->color('gray')
+                    ->url(fn (Agent $record): string => url("agents/{$record->id}/setup")),
                 Tables\Actions\ViewAction::make(),
                 Tables\Actions\EditAction::make(),
             ])

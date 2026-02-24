@@ -34,12 +34,22 @@ class AgentSetup extends Page
     {
         $this->agent = $agent;
 
-        // Check for token from template deployment session
-        $deployedTokens = session('deployed_tokens', []);
-        foreach ($deployedTokens as $entry) {
-            if ($entry['name'] === $agent->name) {
-                $this->plainToken = $entry['token'];
-                break;
+        // Check for token stored by agent ID (from create or regenerate)
+        $sessionKey = "agent_token_{$agent->id}";
+        if (session()->has($sessionKey)) {
+            $this->plainToken = session($sessionKey);
+            // Clear after loading so it doesn't persist forever
+            session()->forget($sessionKey);
+        }
+
+        // Fallback: check deployed_tokens from template deployment
+        if (! $this->plainToken) {
+            $deployedTokens = session('deployed_tokens', []);
+            foreach ($deployedTokens as $entry) {
+                if ($entry['name'] === $agent->name) {
+                    $this->plainToken = $entry['token'];
+                    break;
+                }
             }
         }
     }
@@ -51,6 +61,9 @@ class AgentSetup extends Page
         $this->agent->update([
             'api_token' => hash('sha256', $this->plainToken),
         ]);
+
+        // Note: token is now in Livewire state ($this->plainToken) for the current page view.
+        // No need to persist to session since the user is already on the setup page.
     }
 
     public function setSkillTab(string $tab): void

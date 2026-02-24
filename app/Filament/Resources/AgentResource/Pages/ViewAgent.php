@@ -14,6 +14,12 @@ class ViewAgent extends ViewRecord
     protected function getHeaderActions(): array
     {
         return [
+            Actions\Action::make('setup')
+                ->label('Setup Guide')
+                ->icon('heroicon-o-cog-6-tooth')
+                ->color('gray')
+                ->outlined()
+                ->url(fn (): string => url("agents/{$this->record->id}/setup")),
             Actions\Action::make('unpause')
                 ->label('Un-pause Agent')
                 ->icon('heroicon-o-play')
