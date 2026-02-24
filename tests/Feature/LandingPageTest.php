@@ -7,12 +7,30 @@ it('shows landing page for guests', function () {
     $this->get('/')
         ->assertSuccessful()
         ->assertSeeText('Mission Control')
-        ->assertSeeText('The coordination backbone for your AI agent squads.')
+        ->assertSeeText('Command your AI agents from one dashboard.')
         ->assertSee('/login')
         ->assertSee('/register');
 });
 
-it('redirects logged-in users to home', function () {
+it('shows all landing page sections for guests', function () {
+    $this->get('/')
+        ->assertSuccessful()
+        ->assertSeeText('Everything your squad needs')
+        ->assertSeeText('Agent Heartbeats')
+        ->assertSeeText('Task Dependencies')
+        ->assertSeeText('Threaded Conversations')
+        ->assertSeeText('Up and running in 3 steps')
+        ->assertSeeText('Simple pricing');
+});
+
+it('shows get started buttons for guests', function () {
+    $this->get('/')
+        ->assertSuccessful()
+        ->assertSeeText('Get started')
+        ->assertSeeText('Sign in');
+});
+
+it('shows dashboard link for logged-in users', function () {
     $team = Team::factory()->create(['onboarding_completed_at' => now()]);
     $user = User::factory()->create(['current_team_id' => $team->id]);
     $team->users()->attach($user, ['role' => 'owner']);
