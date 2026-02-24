@@ -1,50 +1,59 @@
 @php
     $isSubtask = $isSubtask ?? false;
 
-    $priorityDotColor = match($task->priority?->value) {
-        'critical' => 'bg-rose-500',
-        'high' => 'bg-amber-500',
-        'medium' => 'bg-sky-500',
-        'low' => 'bg-slate-300',
+    $priorityLabel = $task->priority?->value;
+    $priorityBadgeStyle = match($task->priority?->value) {
+        'critical' => 'background-color: #fff1f2; color: #be123c;',
+        'high' => 'background-color: #fffbeb; color: #b45309;',
+        'medium' => 'background-color: #f0f9ff; color: #0369a1;',
+        'low' => 'background-color: #f1f5f9; color: #475569;',
         default => null,
     };
 
     $isBlocked = $task->status->value === 'blocked';
     $hasBlockedDependency = $isBlocked && $task->dependencies->isNotEmpty();
-    $isBlocking = ($task->dependents_count ?? $task->dependents->count()) > 0;
+
+    $agentStatusColor = '#94a3b8';
+    if ($task->assignedAgent) {
+        $agentStatusColor = match(true) {
+            $task->assignedAgent->last_heartbeat_at !== null && $task->assignedAgent->status?->value !== 'error' => '#10b981',
+            $task->assignedAgent->status?->value === 'error' => '#f43f5e',
+            default => '#f59e0b',
+        };
+    }
 @endphp
 
-<div class="kanban-card cursor-grab rounded-lg border border-slate-200 bg-white p-3 shadow-sm transition-all duration-150 hover:-translate-y-px hover:shadow-md active:cursor-grabbing dark:border-slate-700 dark:bg-gray-800"
+<div class="kanban-card cursor-grab"
+     style="background: #ffffff; border: 1px solid #e2e8f0; border-radius: 8px; padding: 12px; box-shadow: 0 1px 2px rgba(0,0,0,0.04); transition: box-shadow 0.15s, transform 0.15s;"
      data-task-id="{{ $task->id }}"
-     wire:click="selectTask('{{ $task->id }}')">
+     wire:click="selectTask('{{ $task->id }}')"
+     onmouseover="this.style.boxShadow='0 2px 8px rgba(0,0,0,0.08)'; this.style.transform='translateY(-1px)';"
+     onmouseout="this.style.boxShadow='0 1px 2px rgba(0,0,0,0.04)'; this.style.transform='translateY(0)';">
 
-    {{-- Priority dot + Title --}}
-    <div class="flex items-start gap-2">
-        @if ($priorityDotColor)
-            <span class="mt-1.5 inline-block h-1.5 w-1.5 flex-shrink-0 rounded-full {{ $priorityDotColor }}" title="{{ $task->priority->value }}"></span>
-        @endif
-        <p class="line-clamp-2 text-sm font-medium text-slate-900 dark:text-white">{{ $task->title }}</p>
-    </div>
+    {{-- Title --}}
+    <p class="line-clamp-2" style="font-size: 13px; font-weight: 600; color: #1e293b; line-height: 1.4; margin: 0;">{{ $task->title }}</p>
 
-    {{-- Bottom row: avatar left, icons right --}}
-    <div class="mt-2.5 flex items-center justify-between">
-        <div>
+    {{-- Bottom row: agent left, badge right --}}
+    <div class="flex items-center justify-between" style="margin-top: 10px;">
+        <div class="flex items-center" style="gap: 6px;">
             @if ($task->assignedAgent)
-                <x-agent-avatar :agent="$task->assignedAgent" size="xs" />
+                <div style="width: 7px; height: 7px; border-radius: 50%; background-color: {{ $agentStatusColor }}; flex-shrink: 0;"></div>
+                <span style="font-size: 12px; color: #94a3b8; font-weight: 500;">{{ $task->assignedAgent->name }}</span>
+            @else
+                <div style="width: 7px; height: 7px; border-radius: 50%; background-color: #cbd5e1; flex-shrink: 0;"></div>
+                <span style="font-size: 12px; color: #cbd5e1; font-weight: 500;">Unassigned</span>
             @endif
         </div>
 
-        <div class="flex items-center gap-2">
-            @if ($isBlocking)
-                <x-heroicon-o-link class="h-3.5 w-3.5 text-slate-400" title="Blocking other tasks" />
-            @endif
-
-            @if ($isBlocked && ! $hasBlockedDependency)
-                <x-heroicon-o-lock-closed class="h-3.5 w-3.5 text-rose-400" title="Blocked" />
+        <div class="flex items-center" style="gap: 6px;">
+            @if ($isBlocked)
+                <span style="font-size: 11px; font-weight: 600; padding: 2px 7px; border-radius: 4px; background-color: #fff1f2; color: #be123c;">blocked</span>
+            @elseif ($priorityBadgeStyle)
+                <span style="font-size: 11px; font-weight: 600; padding: 2px 7px; border-radius: 4px; {{ $priorityBadgeStyle }}">{{ $priorityLabel }}</span>
             @endif
 
             @if (! $isSubtask && $task->subtasks->isNotEmpty())
-                <span class="flex items-center gap-0.5 text-xs text-slate-400">
+                <span class="flex items-center" style="gap: 2px; font-size: 11px; color: #94a3b8;">
                     <x-heroicon-o-queue-list class="h-3 w-3" />
                     {{ $task->subtasks->count() }}
                 </span>
@@ -54,9 +63,9 @@
 
     {{-- Blocked by indicator --}}
     @if ($hasBlockedDependency)
-        <div class="mt-2 flex items-center gap-1 truncate border-t border-slate-100 pt-2 dark:border-slate-700">
-            <x-heroicon-o-lock-closed class="h-3 w-3 flex-shrink-0 text-rose-400" />
-            <span class="truncate text-xs text-rose-500">Blocked by: {{ $task->dependencies->first()->title }}</span>
+        <div class="flex items-center truncate" style="margin-top: 8px; padding-top: 8px; border-top: 1px solid #f1f5f9; gap: 4px;">
+            <x-heroicon-o-lock-closed class="h-3 w-3 flex-shrink-0" style="color: #f43f5e;" />
+            <span class="truncate" style="font-size: 11px; color: #f43f5e;">Blocked by: {{ $task->dependencies->first()->title }}</span>
         </div>
     @endif
 </div>
