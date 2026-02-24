@@ -120,6 +120,7 @@ class AgentSetup extends Page
             'heartbeatSkillMd' => $this->heartbeatSkillMd($apiUrl),
             'tasksSkillMd' => $this->tasksSkillMd($apiUrl),
             'cronConfigInContext' => $this->cronConfigInContext($cronExpr, $heartbeatModel),
+            'cronOnlyConfig' => $this->cronOnlyConfig($cronExpr, $heartbeatModel),
             'curlCommand' => $this->curlCommand($apiUrl),
         ];
     }
@@ -326,13 +327,34 @@ BASH;
                     'payload' => [
                         'kind' => 'agentTurn',
                         'model' => $heartbeatModel,
-                        'message' => 'Run the mission-control-heartbeat skill now. Sync with Mission Control to check in and retrieve any pending work.',
+                        'message' => 'Run the mission-control-heartbeat skill now. Sync with Mission Control, report your status, and check for pending work.',
                     ],
                 ],
             ],
         ];
 
         return json_encode($config, JSON_PRETTY_PRINT | JSON_UNESCAPED_SLASHES);
+    }
+
+    private function cronOnlyConfig(string $cronExpr, string $heartbeatModel): string
+    {
+        $crons = [
+            [
+                'name' => 'Mission Control Heartbeat',
+                'schedule' => [
+                    'kind' => 'cron',
+                    'expr' => $cronExpr,
+                ],
+                'sessionTarget' => 'isolated',
+                'payload' => [
+                    'kind' => 'agentTurn',
+                    'model' => $heartbeatModel,
+                    'message' => 'Run the mission-control-heartbeat skill now. Sync with Mission Control, report your status, and check for pending work.',
+                ],
+            ],
+        ];
+
+        return json_encode($crons, JSON_PRETTY_PRINT | JSON_UNESCAPED_SLASHES);
     }
 
     private function heartbeatSkillMd(string $apiUrl): string

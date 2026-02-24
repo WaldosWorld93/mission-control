@@ -65,33 +65,66 @@
                 >2</div>
                 <h3 class="text-base font-semibold text-gray-900 dark:text-white">Add Agent to OpenClaw Gateway</h3>
             </div>
-            <div class="rounded-xl border border-gray-200 bg-white dark:border-gray-700 dark:bg-gray-800 space-y-4" style="margin-left: 44px; padding: 20px 32px;">
-                <p class="text-sm text-gray-600 dark:text-gray-300">
-                    Add this agent configuration to the <code class="rounded bg-stone-100 px-1.5 py-0.5 text-xs dark:bg-gray-900">agents</code> array in your <code class="rounded bg-stone-100 px-1.5 py-0.5 text-xs dark:bg-gray-900">openclaw.json</code>:
-                </p>
-
-                <x-code-block language="json">{{ $openclawAgentConfig }}</x-code-block>
-
-                <div class="rounded-lg p-3" style="background-color: #f0f9ff; border: 1px solid #bae6fd;">
-                    <ul class="space-y-1 text-xs" style="color: #0369a1;">
-                        <li><strong>name:</strong> Uses the slug format (<code class="text-xs">{{ $agentSlug }}</code>) — must match across config and workspace.</li>
-                        <li><strong>workspace:</strong> Points to <code class="text-xs">{{ $workspacePath }}</code> — we'll create this directory in Step 3.</li>
-                        <li>If you already have agents configured, add this entry to the existing <code class="text-xs">agents</code> array.</li>
-                    </ul>
+            <div class="rounded-xl border border-gray-200 bg-white dark:border-gray-700 dark:bg-gray-800 overflow-hidden" style="margin-left: 44px;">
+                {{-- Tabs --}}
+                <div class="flex border-b border-gray-200 dark:border-gray-700">
+                    <button
+                        wire:click="setSkillTab('ask')"
+                        class="flex-1 px-4 py-3 text-sm font-medium transition-colors text-gray-500 hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-300"
+                        @if ($skillTab === 'ask') style="color: #4f46e5; border-bottom: 2px solid #4f46e5;" @endif
+                    >
+                        Option A: Ask Your Agent
+                    </button>
+                    <button
+                        wire:click="setSkillTab('manual')"
+                        class="flex-1 px-4 py-3 text-sm font-medium transition-colors text-gray-500 hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-300"
+                        @if ($skillTab === 'manual') style="color: #4f46e5; border-bottom: 2px solid #4f46e5;" @endif
+                    >
+                        Option B: Manual Setup
+                    </button>
                 </div>
 
-                {{-- Collapsible: Full config --}}
-                <div class="rounded-lg border border-gray-200 dark:border-gray-700">
-                    <button
-                        wire:click="toggleFile('fullConfig')"
-                        class="flex w-full items-center justify-between px-4 py-3 text-sm font-medium text-gray-700 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-700/50 transition-colors"
-                    >
-                        <span>View full openclaw.json with all squad agents</span>
-                        <x-heroicon-o-chevron-down class="h-4 w-4 transition-transform {{ $expandedFile === 'fullConfig' ? 'rotate-180' : '' }}" />
-                    </button>
-                    @if ($expandedFile === 'fullConfig')
-                        <div class="border-t border-gray-200 dark:border-gray-700 p-4">
-                            <x-code-block language="json" maxHeight="300px">{{ $openclawFullConfig }}</x-code-block>
+                <div style="padding: 20px 32px;">
+                    @if ($skillTab === 'ask')
+                        <p class="mb-3 text-sm text-gray-600 dark:text-gray-300">
+                            Paste this into a chat with your OpenClaw agent. It will add itself to the gateway configuration automatically:
+                        </p>
+                        <x-code-block>Add me as an agent to the openclaw.json configuration at ~/.openclaw/openclaw.json.
+
+Add this entry to the "agents" array (create the array if it doesn't exist):
+
+{{ $openclawAgentConfig }}
+
+Don't create a new file — add this to the existing openclaw.json. If there are already agents in the array, add this entry alongside them.</x-code-block>
+                    @else
+                        <p class="mb-3 text-sm text-gray-600 dark:text-gray-300">
+                            Add this agent configuration to the <code class="rounded bg-stone-100 px-1.5 py-0.5 text-xs dark:bg-gray-900">agents</code> array in your <code class="rounded bg-stone-100 px-1.5 py-0.5 text-xs dark:bg-gray-900">openclaw.json</code>:
+                        </p>
+
+                        <x-code-block language="json">{{ $openclawAgentConfig }}</x-code-block>
+
+                        <div class="mt-4 rounded-lg p-3" style="background-color: #f0f9ff; border: 1px solid #bae6fd;">
+                            <ul class="space-y-1 text-xs" style="color: #0369a1;">
+                                <li><strong>name:</strong> Uses the slug format (<code class="text-xs">{{ $agentSlug }}</code>) — must match across config and workspace.</li>
+                                <li><strong>workspace:</strong> Points to <code class="text-xs">{{ $workspacePath }}</code> — we'll create this directory in Step 3.</li>
+                                <li>If you already have agents configured, add this entry to the existing <code class="text-xs">agents</code> array.</li>
+                            </ul>
+                        </div>
+
+                        {{-- Collapsible: Full config --}}
+                        <div class="mt-4 rounded-lg border border-gray-200 dark:border-gray-700">
+                            <button
+                                wire:click="toggleFile('fullConfig')"
+                                class="flex w-full items-center justify-between px-4 py-3 text-sm font-medium text-gray-700 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-700/50 transition-colors"
+                            >
+                                <span>View full openclaw.json with all squad agents</span>
+                                <x-heroicon-o-chevron-down class="h-4 w-4 transition-transform {{ $expandedFile === 'fullConfig' ? 'rotate-180' : '' }}" />
+                            </button>
+                            @if ($expandedFile === 'fullConfig')
+                                <div class="border-t border-gray-200 dark:border-gray-700 p-4">
+                                    <x-code-block language="json" maxHeight="300px">{{ $openclawFullConfig }}</x-code-block>
+                                </div>
+                            @endif
                         </div>
                     @endif
                 </div>
@@ -440,19 +473,86 @@ MC_AGENT_TOKEN={{ $plainToken }}</x-code-block>
                 >6</div>
                 <h3 class="text-base font-semibold text-gray-900 dark:text-white">Configure Heartbeat Cron</h3>
             </div>
-            <div class="rounded-xl border border-gray-200 bg-white dark:border-gray-700 dark:bg-gray-800 space-y-4" style="margin-left: 44px; padding: 20px 32px;">
-                <p class="text-sm text-gray-600 dark:text-gray-300">
-                    Add the <code class="rounded bg-stone-100 px-1.5 py-0.5 text-xs dark:bg-gray-900">crons</code> array to your agent's configuration in <code class="rounded bg-stone-100 px-1.5 py-0.5 text-xs dark:bg-gray-900">openclaw.json</code>.
-                    The heartbeat runs on <strong>{{ str_replace('anthropic/', '', $heartbeatModel) }}</strong> every <strong>{{ $heartbeatInterval / 60 }} minutes</strong> to keep costs low.
-                </p>
+            <div class="rounded-xl border border-gray-200 bg-white dark:border-gray-700 dark:bg-gray-800 overflow-hidden" style="margin-left: 44px;">
+                {{-- Tabs --}}
+                <div class="flex border-b border-gray-200 dark:border-gray-700">
+                    <button
+                        wire:click="setSkillTab('ask')"
+                        class="flex-1 px-4 py-3 text-sm font-medium transition-colors text-gray-500 hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-300"
+                        @if ($skillTab === 'ask') style="color: #4f46e5; border-bottom: 2px solid #4f46e5;" @endif
+                    >
+                        Option A: Ask Your Agent
+                    </button>
+                    <button
+                        wire:click="setSkillTab('manual')"
+                        class="flex-1 px-4 py-3 text-sm font-medium transition-colors text-gray-500 hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-300"
+                        @if ($skillTab === 'manual') style="color: #4f46e5; border-bottom: 2px solid #4f46e5;" @endif
+                    >
+                        Option B: Manual Setup
+                    </button>
+                </div>
 
-                <x-code-block language="json">{{ $cronConfigInContext }}</x-code-block>
+                <div style="padding: 20px 32px;">
+                    @if ($skillTab === 'ask')
+                        <p class="mb-3 text-sm text-gray-600 dark:text-gray-300">
+                            Paste this into a chat with your OpenClaw agent. It will add the heartbeat cron to your configuration automatically:
+                        </p>
+                        <x-code-block>Add a heartbeat cron to my openclaw.json configuration. Here's what to add:
 
-                <div class="rounded-lg p-3" style="background-color: #f0f9ff; border: 1px solid #bae6fd;">
-                    <p class="text-xs" style="color: #0369a1;">
-                        <strong>Tip:</strong> Heartbeats use a cheap, fast model ({{ str_replace('anthropic/', '', $heartbeatModel) }}) to check for work.
-                        Actual tasks will use the agent's work model ({{ str_replace('anthropic/', '', $agent->work_model ?? 'default') }}).
-                    </p>
+In my agent config for "{{ $agentSlug }}", add a "crons" array with this entry:
+
+{{ $cronOnlyConfig }}
+
+My openclaw.json is at ~/.openclaw/openclaw.json. Add the crons array to the existing agent entry — don't create a new one.</x-code-block>
+                    @else
+                        <p class="mb-4 text-sm text-gray-600 dark:text-gray-300">
+                            The heartbeat is a cron job that makes your agent check in with Mission Control on a schedule.
+                            It uses <strong>{{ str_replace('anthropic/', '', $heartbeatModel) }}</strong> (a cheap, fast model) so it costs almost nothing to run.
+                        </p>
+
+                        {{-- Sub-section: If you added in Step 2 --}}
+                        <div class="mb-6">
+                            <h4 class="text-sm font-semibold text-gray-800 dark:text-gray-200 mb-2">If you added this agent in Step 2 (openclaw.json):</h4>
+                            <p class="text-sm text-gray-600 dark:text-gray-300 mb-3">
+                                The cron was already included in your agent config from Step 2 — you can skip this step.
+                                To verify, open <code class="rounded bg-stone-100 px-1.5 py-0.5 text-xs dark:bg-gray-900">~/.openclaw/openclaw.json</code> and check that your agent has a <code class="rounded bg-stone-100 px-1.5 py-0.5 text-xs dark:bg-gray-900">crons</code> array with a "Mission Control Heartbeat" entry.
+                            </p>
+
+                            {{-- Collapsible: Verify cron config --}}
+                            <div class="rounded-lg border border-gray-200 dark:border-gray-700">
+                                <button
+                                    wire:click="toggleFile('cronVerify')"
+                                    class="flex w-full items-center justify-between px-4 py-3 text-sm font-medium text-gray-700 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-700/50 transition-colors"
+                                >
+                                    <span>View cron config to verify</span>
+                                    <x-heroicon-o-chevron-down class="h-4 w-4 transition-transform {{ $expandedFile === 'cronVerify' ? 'rotate-180' : '' }}" />
+                                </button>
+                                @if ($expandedFile === 'cronVerify')
+                                    <div class="border-t border-gray-200 dark:border-gray-700 p-4">
+                                        <x-code-block language="json" maxHeight="200px">{{ $cronOnlyConfig }}</x-code-block>
+                                    </div>
+                                @endif
+                            </div>
+                        </div>
+
+                        {{-- Sub-section: If you set up manually --}}
+                        <div>
+                            <h4 class="text-sm font-semibold text-gray-800 dark:text-gray-200 mb-2">If you set up this agent manually:</h4>
+                            <p class="mb-3 text-sm text-gray-600 dark:text-gray-300">
+                                Open <code class="rounded bg-stone-100 px-1.5 py-0.5 text-xs dark:bg-gray-900">~/.openclaw/openclaw.json</code>, find your agent entry by name, and add a <code class="rounded bg-stone-100 px-1.5 py-0.5 text-xs dark:bg-gray-900">crons</code> key to it:
+                            </p>
+
+                            <x-code-block language="json">{{ $cronConfigInContext }}</x-code-block>
+
+                            <div class="mt-3 rounded-lg p-3" style="background-color: #f0f9ff; border: 1px solid #bae6fd;">
+                                <p class="text-xs" style="color: #0369a1;">
+                                    <strong>Note:</strong> Add the <code class="text-xs">crons</code> key inside your existing agent object — don't create a new agent entry.
+                                    Heartbeats use {{ str_replace('anthropic/', '', $heartbeatModel) }} to check for work.
+                                    Actual tasks will use the agent's work model ({{ str_replace('anthropic/', '', $agent->work_model ?? 'default') }}).
+                                </p>
+                            </div>
+                        </div>
+                    @endif
                 </div>
             </div>
         </section>
