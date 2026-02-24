@@ -66,15 +66,18 @@ class AgentResource extends Resource
                     ->schema([
                         Forms\Components\Textarea::make('soul_md')
                             ->label('SOUL.md')
+                            ->helperText('Define your agent\'s identity and working style. Leave blank to auto-generate from the name, role, and description above.')
                             ->rows(15)
-                            ->extraAttributes(['class' => 'soul-editor'])
+                            ->extraAttributes([
+                                'style' => "font-family: 'JetBrains Mono', monospace; font-size: 13px;",
+                            ])
                             ->columnSpanFull(),
                         Forms\Components\TextInput::make('soul_hash')
                             ->label('Soul Hash')
                             ->disabled()
-                            ->dehydrated(false),
-                    ])
-                    ->visibleOn('edit'),
+                            ->dehydrated(false)
+                            ->visibleOn('edit'),
+                    ]),
             ]);
     }
 

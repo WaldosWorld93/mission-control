@@ -139,3 +139,38 @@ it('stores soul_md and soul_hash', function () {
     expect($agent->soul_md)->toBe('# My Agent')
         ->and($agent->soul_hash)->toBe(hash('sha256', '# My Agent'));
 });
+
+it('generates a default soul md from agent fields', function () {
+    $agent = Agent::factory()->create([
+        'team_id' => $this->team->id,
+        'name' => 'Athena',
+        'role' => 'Lead Researcher',
+        'description' => 'Coordinates research across the team.',
+    ]);
+
+    $soulMd = $agent->generateDefaultSoulMd();
+
+    expect($soulMd)
+        ->toContain('# Athena')
+        ->toContain('Lead Researcher')
+        ->toContain('Coordinates research across the team.')
+        ->toContain('## Working Style')
+        ->toContain('## Communication')
+        ->toContain('## Task Management');
+});
+
+it('generates default soul md with fallback values', function () {
+    $agent = Agent::factory()->create([
+        'team_id' => $this->team->id,
+        'name' => 'Bot',
+        'role' => null,
+        'description' => null,
+    ]);
+
+    $soulMd = $agent->generateDefaultSoulMd();
+
+    expect($soulMd)
+        ->toContain('# Bot')
+        ->toContain('Agent')
+        ->toContain('An AI agent.');
+});

@@ -2,6 +2,16 @@
     <div style="max-width: 64rem; margin: 0 auto; padding-left: 2rem; padding-right: 2rem;">
     <div class="mx-auto max-w-3xl space-y-10">
 
+        {{-- Success Banner --}}
+        @if (session('agent_created'))
+            <div class="flex items-center gap-3 rounded-xl p-4" style="background-color: #ecfdf5; border: 1px solid #a7f3d0;">
+                <x-heroicon-o-check-circle class="h-6 w-6 flex-shrink-0" style="color: #059669;" />
+                <p class="text-sm font-medium" style="color: #065f46;">
+                    Agent created! Follow the steps below to connect it.
+                </p>
+            </div>
+        @endif
+
         {{-- Header --}}
         <div>
             <div class="flex items-center gap-3">
@@ -459,10 +469,16 @@ MC_AGENT_TOKEN={{ $plainToken }}</x-code-block>
             </div>
             <div class="rounded-xl border border-gray-200 bg-white dark:border-gray-700 dark:bg-gray-800 space-y-4" style="margin-left: 44px; padding: 20px 32px;">
                 @if ($agent->soul_md)
-                    <p class="text-sm text-gray-600 dark:text-gray-300">
-                        Copy this SOUL.md to your agent's workspace at <code class="rounded bg-stone-100 px-1.5 py-0.5 text-xs dark:bg-gray-900">{{ $workspacePath }}/SOUL.md</code>.
-                        It will sync automatically on each heartbeat.
-                    </p>
+                    <div class="flex items-center justify-between">
+                        <p class="text-sm text-gray-600 dark:text-gray-300">
+                            Copy this SOUL.md to your agent's workspace at <code class="rounded bg-stone-100 px-1.5 py-0.5 text-xs dark:bg-gray-900">{{ $workspacePath }}/SOUL.md</code>.
+                            It will sync automatically on each heartbeat.
+                        </p>
+                        <a href="{{ \App\Filament\Resources\AgentResource::getUrl('edit', ['record' => $agent]) }}" class="flex-shrink-0 ml-4 inline-flex items-center gap-1.5 rounded-lg px-3 py-1.5 text-xs font-medium transition-colors" style="color: #4f46e5; border: 1px solid #c7d2fe;">
+                            <x-heroicon-o-pencil-square class="h-3.5 w-3.5" />
+                            Edit
+                        </a>
+                    </div>
                     <div class="text-sm font-medium text-gray-700 dark:text-gray-300">SOUL.md for {{ $agent->name }}</div>
                     <x-code-block language="markdown" maxHeight="300px">{{ $agent->soul_md }}</x-code-block>
                 @else
