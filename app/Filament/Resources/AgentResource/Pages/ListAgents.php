@@ -13,7 +13,13 @@ class ListAgents extends ListRecords
     protected function getHeaderActions(): array
     {
         return [
-            Actions\CreateAction::make(),
+            Actions\Action::make('addFromTemplate')
+                ->label('Add from Template')
+                ->icon('heroicon-o-square-3-stack-3d')
+                ->color('gray')
+                ->url(url('templates')),
+            Actions\CreateAction::make()
+                ->label('Add Custom Agent'),
         ];
     }
 }
