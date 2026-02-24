@@ -12,6 +12,7 @@ This application is a Laravel application and its main Laravel ecosystems packag
 - php - 8.4.18
 - filament/filament (FILAMENT) - v3
 - laravel/framework (LARAVEL) - v12
+- laravel/nightwatch (NIGHTWATCH) - v1
 - laravel/prompts (PROMPTS) - v0
 - laravel/reverb (REVERB) - v1
 - livewire/livewire (LIVEWIRE) - v3
@@ -22,6 +23,7 @@ This application is a Laravel application and its main Laravel ecosystems packag
 - laravel/sail (SAIL) - v1
 - pestphp/pest (PEST) - v4
 - phpunit/phpunit (PHPUNIT) - v12
+- laravel-echo (ECHO) - v2
 - tailwindcss (TAILWINDCSS) - v4
 
 ## Skills Activation
