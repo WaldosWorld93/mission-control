@@ -15,7 +15,8 @@ trait BelongsToTeam
 
         static::creating(function ($model) {
             if (! $model->team_id) {
-                $model->team_id = app(TeamContext::class)->id();
+                $model->team_id = app(TeamContext::class)->id()
+                    ?? auth()->user()?->current_team_id;
             }
         });
     }
