@@ -397,7 +397,7 @@ it('passes null lead agent for lead agent setup', function () {
     expect($page->viewData('leadAgent'))->toBeNull();
 });
 
-it('shows delegation text for non-lead agent when lead exists', function () {
+it('shows main agent name for non-lead agent when lead exists', function () {
     Agent::factory()->create([
         'team_id' => $this->team->id,
         'name' => 'Commander',
@@ -407,8 +407,9 @@ it('shows delegation text for non-lead agent when lead exists', function () {
     $this->actingAs($this->user);
 
     Livewire::test(\App\Filament\Pages\AgentSetup::class, ['agent' => $this->agent])
+        ->assertSee('main agent (')
         ->assertSee('Commander')
-        ->assertSee('Tell Scout');
+        ->assertDontSee('It will delegate');
 });
 
 it('shows direct prompts for lead agent', function () {
@@ -419,5 +420,25 @@ it('shows direct prompts for lead agent', function () {
 
     Livewire::test(\App\Filament\Pages\AgentSetup::class, ['agent' => $this->agent])
         ->assertSee('Paste this into a chat with your')
-        ->assertDontSee('It will delegate');
+        ->assertDontSee('main agent (');
+});
+
+it('only uses delegation language in step 8 for non-lead agents', function () {
+    Agent::factory()->create([
+        'team_id' => $this->team->id,
+        'name' => 'Commander',
+        'is_lead' => true,
+    ]);
+
+    $this->actingAs($this->user);
+
+    $html = Livewire::test(\App\Filament\Pages\AgentSetup::class, ['agent' => $this->agent])
+        ->html();
+
+    // Step 8 should have delegation language
+    expect($html)->toContain('Tell Scout to run the mission-control-heartbeat skill');
+    // Other steps should NOT have delegation language
+    expect($html)->not->toContain('Tell Scout to add');
+    expect($html)->not->toContain('Tell Scout to create');
+    expect($html)->not->toContain('Tell Scout to save');
 });
