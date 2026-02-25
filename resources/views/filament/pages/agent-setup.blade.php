@@ -87,17 +87,17 @@
                 <div style="padding: 20px 32px;">
                     @if ($skillTab === 'ask')
                         <p class="mb-3 text-sm text-gray-600 dark:text-gray-300">
-                            Paste this into a chat with your OpenClaw agent. It will add itself to the gateway configuration automatically:
+                            Paste this into a chat with your OpenClaw agent. It will update the gateway configuration automatically:
                         </p>
-                        <x-code-block>Add me as an agent to the openclaw.json configuration at ~/.openclaw/openclaw.json.
+                        <x-code-block>Add a new agent to my openclaw.json configuration at ~/.openclaw/openclaw.json.
 
 Add this entry to the "agents" array (create the array if it doesn't exist):
 
 {{ $openclawAgentConfig }}
 
-The "tools" object controls which tools I have access to. The "profile" sets the base set of tools, and "allow"/"deny" can override specific tool groups.
+The "tools" object controls which tools the agent has access to. The "profile" sets the base set of tools, and "allow"/"deny" can override specific tool groups.
 
-Don't create a new file — add this to the existing openclaw.json. If there are already agents in the array, add this entry alongside them.</x-code-block>
+Don't create a new file — add this to the existing openclaw.json. If there are already other agents in the array, add this one alongside them.</x-code-block>
                     @else
                         <p class="mb-3 text-sm text-gray-600 dark:text-gray-300">
                             Add this agent configuration to the <code class="rounded bg-stone-100 px-1.5 py-0.5 text-xs dark:bg-gray-900">agents</code> array in your <code class="rounded bg-stone-100 px-1.5 py-0.5 text-xs dark:bg-gray-900">openclaw.json</code>:
@@ -166,7 +166,7 @@ Don't create a new file — add this to the existing openclaw.json. If there are
                         <p class="mb-3 text-sm text-gray-600 dark:text-gray-300">
                             Paste this into a chat with your OpenClaw agent. It will create all workspace files automatically:
                         </p>
-                        <x-code-block>Create the following workspace files for me. Run this script:
+                        <x-code-block>Create the workspace files for the {{ $agent->name }} agent. Run this script:
 
 {{ $createAllFilesScript }}</x-code-block>
                     @else
@@ -334,10 +334,10 @@ Don't create a new file — add this to the existing openclaw.json. If there are
                         <p class="mb-3 text-sm text-gray-600 dark:text-gray-300">
                             Paste this into a chat with your OpenClaw agent. It will create the skill files automatically:
                         </p>
-                        <x-code-block>Create two new skills in my workspace:
+                        <x-code-block>Create two new skill files in the agent workspace:
 
-1. Create `{{ $workspacePath }}/skills/mission-control-heartbeat/SKILL.md` with the content I'll provide below.
-2. Create `{{ $workspacePath }}/skills/mission-control-tasks/SKILL.md` with the content I'll provide below.</x-code-block>
+1. Create `{{ $workspacePath }}/skills/mission-control-heartbeat/SKILL.md` with the content below.
+2. Create `{{ $workspacePath }}/skills/mission-control-tasks/SKILL.md` with the content below.</x-code-block>
 
                         <div class="mt-4 space-y-2">
                             {{-- Collapsible: heartbeat skill --}}
@@ -499,13 +499,13 @@ MC_AGENT_TOKEN={{ $plainToken }}</x-code-block>
                         <p class="mb-3 text-sm text-gray-600 dark:text-gray-300">
                             Paste this into a chat with your OpenClaw agent. It will add the heartbeat cron to your configuration automatically:
                         </p>
-                        <x-code-block>Add a heartbeat cron to my openclaw.json configuration. Here's what to add:
+                        <x-code-block>Add a heartbeat cron to the openclaw.json configuration at ~/.openclaw/openclaw.json.
 
-In my agent config for "{{ $agentSlug }}", add a "crons" array with this entry:
+In the agent config for "{{ $agentSlug }}", add a "crons" array with this entry:
 
 {{ $cronOnlyConfig }}
 
-My openclaw.json is at ~/.openclaw/openclaw.json. Add the crons array to the existing agent entry — don't create a new one.</x-code-block>
+Add the crons array to the existing agent entry — don't create a new agent or duplicate the config.</x-code-block>
                     @else
                         <p class="mb-4 text-sm text-gray-600 dark:text-gray-300">
                             The heartbeat is a cron job that makes your agent check in with Mission Control on a schedule.
