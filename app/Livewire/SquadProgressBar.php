@@ -33,7 +33,10 @@ class SquadProgressBar extends Component
 
     public function render(): \Illuminate\Contracts\View\View
     {
-        $agents = Agent::query()->orderBy('name')->get();
+        $agents = Agent::query()
+            ->orderByDesc('is_lead')
+            ->orderBy('name')
+            ->get();
 
         return view('livewire.squad-progress-bar', [
             'agents' => $agents,

@@ -113,6 +113,8 @@ class AgentSetup extends Page
             ? null
             : Agent::query()->lead()->first();
 
+        $leadNotReady = $leadAgent && $leadAgent->last_heartbeat_at === null;
+
         return [
             'apiUrl' => $apiUrl,
             'heartbeatModel' => $heartbeatModel,
@@ -121,6 +123,7 @@ class AgentSetup extends Page
             'agentSlug' => $this->agent->slug,
             'workspacePath' => $this->agent->workspace_path,
             'leadAgent' => $leadAgent,
+            'leadNotReady' => $leadNotReady,
             'openclawAgentConfig' => $this->openclawAgentConfig(),
             'openclawFullConfig' => $this->openclawFullConfig(),
             'identityMd' => $this->identityMd(),

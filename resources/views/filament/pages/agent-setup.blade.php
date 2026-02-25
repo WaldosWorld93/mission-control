@@ -12,6 +12,24 @@
             </div>
         @endif
 
+        {{-- Lead Agent Warning --}}
+        @if ($leadNotReady)
+            <div class="flex items-start gap-3" style="background-color: #fffbeb; border: 1px solid #f59e0b; border-radius: 8px; padding: 12px 16px;">
+                <x-heroicon-o-exclamation-triangle class="h-5 w-5 flex-shrink-0" style="color: #d97706; margin-top: 1px;" />
+                <div>
+                    <p class="text-sm font-medium" style="color: #92400e;">
+                        Your lead agent ({{ $leadAgent->name }}) hasn't been set up yet.
+                    </p>
+                    <p class="mt-1 text-sm" style="color: #a16207;">
+                        We recommend setting up the lead agent first — it's needed to delegate tasks and test communication with this agent.
+                        <a href="{{ url("agents/{$leadAgent->id}/setup") }}" class="font-medium underline" style="color: #92400e;">
+                            Set up {{ $leadAgent->name }} &rarr;
+                        </a>
+                    </p>
+                </div>
+            </div>
+        @endif
+
         {{-- Header --}}
         <div>
             <div class="flex items-center gap-3">

@@ -442,3 +442,42 @@ it('only uses delegation language in step 8 for non-lead agents', function () {
     expect($html)->not->toContain('Tell Scout to create');
     expect($html)->not->toContain('Tell Scout to save');
 });
+
+it('shows warning banner when lead agent is not connected', function () {
+    $lead = Agent::factory()->create([
+        'team_id' => $this->team->id,
+        'name' => 'Commander',
+        'is_lead' => true,
+    ]);
+
+    $this->actingAs($this->user);
+
+    $page = Livewire::test(\App\Filament\Pages\AgentSetup::class, ['agent' => $this->agent]);
+
+    expect($page->viewData('leadNotReady'))->toBeTrue();
+    $page->assertSee('Set up Commander')
+        ->assertSee("agents/{$lead->id}/setup");
+});
+
+it('does not show warning banner when lead agent is connected', function () {
+    Agent::factory()->online()->create([
+        'team_id' => $this->team->id,
+        'name' => 'Commander',
+        'is_lead' => true,
+    ]);
+
+    $this->actingAs($this->user);
+
+    $page = Livewire::test(\App\Filament\Pages\AgentSetup::class, ['agent' => $this->agent]);
+    expect($page->viewData('leadNotReady'))->toBeFalse();
+});
+
+it('does not show warning banner for lead agent setup page', function () {
+    $this->agent->update(['is_lead' => true]);
+    $this->agent->refresh();
+
+    $this->actingAs($this->user);
+
+    $page = Livewire::test(\App\Filament\Pages\AgentSetup::class, ['agent' => $this->agent]);
+    expect($page->viewData('leadNotReady'))->toBeFalse();
+});

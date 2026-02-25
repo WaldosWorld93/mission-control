@@ -201,3 +201,53 @@ it('shows simple dashboard button for single agent', function () {
         ->assertDontSee('Remaining:')
         ->assertDontSee('All agents connected');
 });
+
+it('prioritizes lead agent as next agent when lead is not connected', function () {
+    $this->agent->update([
+        'last_heartbeat_at' => now(),
+        'status' => AgentStatus::Idle,
+    ]);
+
+    // Create a non-lead agent (alphabetically first)
+    Agent::factory()->create([
+        'team_id' => $this->team->id,
+        'name' => 'Alpha Worker',
+    ]);
+
+    // Create the lead agent (alphabetically last but should be prioritized)
+    $lead = Agent::factory()->create([
+        'team_id' => $this->team->id,
+        'name' => 'Zeta Commander',
+        'is_lead' => true,
+    ]);
+
+    $this->actingAs($this->user);
+
+    Livewire::test(\App\Livewire\ConnectionStatusWidget::class, ['agent' => $this->agent])
+        ->assertSee('Set up Zeta Commander')
+        ->assertSee("agents/{$lead->id}/setup");
+});
+
+it('shows non-lead agent as next when lead is already connected', function () {
+    $this->agent->update([
+        'last_heartbeat_at' => now(),
+        'status' => AgentStatus::Idle,
+    ]);
+
+    Agent::factory()->online()->create([
+        'team_id' => $this->team->id,
+        'name' => 'Commander',
+        'is_lead' => true,
+    ]);
+
+    $worker = Agent::factory()->create([
+        'team_id' => $this->team->id,
+        'name' => 'Worker',
+    ]);
+
+    $this->actingAs($this->user);
+
+    Livewire::test(\App\Livewire\ConnectionStatusWidget::class, ['agent' => $this->agent])
+        ->assertSee('Set up Worker')
+        ->assertSee("agents/{$worker->id}/setup");
+});

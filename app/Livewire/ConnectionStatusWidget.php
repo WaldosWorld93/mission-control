@@ -103,10 +103,18 @@ class ConnectionStatusWidget extends Component
 
     public function render(): \Illuminate\Contracts\View\View
     {
-        $allAgents = Agent::query()->orderBy('name')->get();
+        $allAgents = Agent::query()
+            ->orderByDesc('is_lead')
+            ->orderBy('name')
+            ->get();
+
         $unconfiguredAgents = $allAgents
             ->filter(fn (Agent $a) => $a->id !== $this->agent->id && $a->last_heartbeat_at === null);
-        $nextAgent = $unconfiguredAgents->first();
+
+        // Prioritize lead agent if it's not connected yet
+        $nextAgent = $unconfiguredAgents->firstWhere('is_lead', true)
+            ?? $unconfiguredAgents->first();
+
         $isMultiAgent = $allAgents->count() > 1;
         $totalAgents = $allAgents->count();
 

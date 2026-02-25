@@ -97,14 +97,19 @@ it('creates agents with soul_md from templates', function () {
     });
 });
 
-it('stores tokens in session and redirects to squad checklist after deploy', function () {
+it('stores tokens in session and redirects to lead agent setup after deploy', function () {
     $template = SquadTemplate::where('name', 'Customer Support Squad')->first();
 
     $this->actingAs($this->user);
 
-    Livewire::test(\App\Filament\Pages\TemplateGallery::class)
-        ->call('deploy', $template->id)
-        ->assertRedirect('/setup/squad');
+    $component = Livewire::test(\App\Filament\Pages\TemplateGallery::class)
+        ->call('deploy', $template->id);
+
+    // Verify redirect goes to the lead agent's setup page
+    $leadAgent = Agent::withoutGlobalScopes()->where('team_id', $this->team->id)->where('is_lead', true)->first();
+    expect($leadAgent)->not->toBeNull();
+
+    $component->assertRedirect("agents/{$leadAgent->id}/setup");
 
     expect(session('deployed_tokens'))->toBeArray()
         ->and(session('deployed_tokens'))->toHaveCount(4)

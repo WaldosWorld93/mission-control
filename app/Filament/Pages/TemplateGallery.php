@@ -69,8 +69,9 @@ class TemplateGallery extends Page
         }
 
         $tokens = [];
+        $leadAgentId = null;
 
-        DB::transaction(function () use ($template, $team, &$tokens) {
+        DB::transaction(function () use ($template, $team, &$tokens, &$leadAgentId) {
             $project = Project::create([
                 'team_id' => $team->id,
                 'name' => $template->name,
@@ -80,8 +81,6 @@ class TemplateGallery extends Page
                 'color' => $this->projectColor($template->name),
                 'started_at' => now(),
             ]);
-
-            $leadAgentId = null;
 
             foreach ($template->agentTemplates as $agentTemplate) {
                 $plainToken = Str::random(40);
@@ -126,7 +125,11 @@ class TemplateGallery extends Page
         session()->put('deployed_tokens', $tokens);
         session()->put('deployed_template', $template->name);
 
-        $this->redirect(url('setup/squad'), navigate: true);
+        if ($leadAgentId) {
+            $this->redirect(url("agents/{$leadAgentId}/setup"), navigate: true);
+        } else {
+            $this->redirect(url('setup/squad'), navigate: true);
+        }
     }
 
     private function projectColor(string $name): string

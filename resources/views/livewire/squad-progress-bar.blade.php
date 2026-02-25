@@ -21,13 +21,15 @@
                         @endif
 
                         <span class="text-xs {{ $isCurrent ? 'font-bold' : 'font-medium' }} text-gray-700 dark:text-gray-300 whitespace-nowrap">
-                            {{ $squadAgent->name }}
+                            {{ $squadAgent->name }}@if ($squadAgent->is_lead) <span class="text-[10px] font-normal" style="color: #6366f1;">(Lead)</span>@endif
                         </span>
                     </div>
 
-                    {{-- Connecting line --}}
+                    {{-- Arrow connector --}}
                     @if (! $loop->last)
-                        <div class="flex-shrink-0" style="width: 16px; height: 1px; background-color: #cbd5e1;"></div>
+                        <svg class="flex-shrink-0" style="width: 16px; height: 12px; color: #94a3b8;" viewBox="0 0 16 12" fill="none" xmlns="http://www.w3.org/2000/svg">
+                            <path d="M1 6h12m0 0l-4-4m4 4l-4 4" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
+                        </svg>
                     @endif
                 @endforeach
             </div>

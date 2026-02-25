@@ -103,3 +103,43 @@ it('includes setup links for each agent', function () {
     Livewire::test(\App\Livewire\SquadChecklistWidget::class)
         ->assertSee("/agents/{$agent->id}/setup");
 });
+
+it('shows lead agent first with step labels', function () {
+    Agent::factory()->create(['team_id' => $this->team->id, 'name' => 'Alpha Worker']);
+    Agent::factory()->create(['team_id' => $this->team->id, 'name' => 'Commander', 'is_lead' => true]);
+
+    $this->actingAs($this->user);
+
+    Livewire::test(\App\Livewire\SquadChecklistWidget::class)
+        ->assertSee('Step 1: Set up your lead agent')
+        ->assertSee('Step 2: Set up your squad')
+        ->assertSee('Commander');
+});
+
+it('disables squad setup links when lead agent is not connected', function () {
+    $lead = Agent::factory()->create(['team_id' => $this->team->id, 'name' => 'Commander', 'is_lead' => true]);
+    $worker = Agent::factory()->create(['team_id' => $this->team->id, 'name' => 'Worker']);
+
+    $this->actingAs($this->user);
+
+    $html = Livewire::test(\App\Livewire\SquadChecklistWidget::class)->html();
+
+    // Lead agent should have a clickable link
+    expect($html)->toContain("agents/{$lead->id}/setup");
+
+    // Worker should NOT have a clickable link (grayed out span instead)
+    expect($html)->toContain('Set up your lead agent first');
+});
+
+it('enables squad setup links when lead agent is connected', function () {
+    Agent::factory()->online()->create(['team_id' => $this->team->id, 'name' => 'Commander', 'is_lead' => true]);
+    $worker = Agent::factory()->create(['team_id' => $this->team->id, 'name' => 'Worker']);
+
+    $this->actingAs($this->user);
+
+    $html = Livewire::test(\App\Livewire\SquadChecklistWidget::class)->html();
+
+    // Worker should have a clickable link
+    expect($html)->toContain("agents/{$worker->id}/setup");
+    expect($html)->not->toContain('Set up your lead agent first');
+});
