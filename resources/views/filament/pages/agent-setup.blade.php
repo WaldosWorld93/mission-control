@@ -248,6 +248,14 @@ Don't create a new file — add this to the existing openclaw.json. If there are
                                 </div>
                             </div>
 
+                            {{-- .env (note) --}}
+                            <div class="rounded-lg border border-gray-200 dark:border-gray-700">
+                                <div class="px-4 py-3 text-sm text-gray-500 dark:text-gray-400">
+                                    <code class="text-xs rounded bg-stone-100 px-1.5 py-0.5 dark:bg-gray-900">{{ $workspacePath }}/.env</code>
+                                    <span class="ml-2 text-xs italic">Agent-specific environment variables (token). Created in Step 5.</span>
+                                </div>
+                            </div>
+
                             {{-- memory.md --}}
                             <div class="rounded-lg border border-gray-200 dark:border-gray-700">
                                 <button
@@ -428,7 +436,11 @@ mkdir -p {{ $workspacePath }}/skills/mission-control-tasks</x-code-block>
             </div>
             <div class="rounded-xl border border-gray-200 bg-white dark:border-gray-700 dark:bg-gray-800 overflow-hidden" style="margin-left: 44px;">
 
-                {{-- Token Warning / Regenerate — always visible above tabs --}}
+                @php
+                    $tokenValue = $plainToken ?? 'YOUR_TOKEN_HERE';
+                @endphp
+
+                {{-- Token Warning / Regenerate — always visible above everything --}}
                 <div style="padding: 20px 32px 0 32px;">
                     @if ($plainToken)
                         <div class="flex items-start gap-3" style="background-color: #fffbeb; border: 1px solid #f59e0b; border-radius: 8px; padding: 12px 16px;">
@@ -459,32 +471,49 @@ mkdir -p {{ $workspacePath }}/skills/mission-control-tasks</x-code-block>
                     @endif
                 </div>
 
-                @php
-                    $tokenValue = $plainToken ?? 'YOUR_TOKEN_HERE';
-                @endphp
+                {{-- Context --}}
+                <div style="padding: 16px 32px 0 32px;">
+                    <p class="text-sm text-gray-600 dark:text-gray-300">
+                        Each agent needs its own API token. Since all your agents share the same OpenClaw gateway, we store tokens in each agent's workspace directory so they don't collide.
+                    </p>
+                </div>
 
-                {{-- Tabs --}}
+                {{-- Sub-section A: API URL (shared) --}}
+                <div style="padding: 16px 32px 0 32px;">
+                    <h4 class="text-sm font-semibold text-gray-800 dark:text-gray-200 mb-2">API URL (one-time, shared across all agents)</h4>
+                    <p class="mb-3 text-sm text-gray-600 dark:text-gray-300">
+                        If you haven't already, set the Mission Control API URL in your global OpenClaw environment. This only needs to be done once — all agents share it.
+                    </p>
+                    <x-code-block language="bash"># Skip this if you've already set MC_API_URL for another agent
+echo 'MC_API_URL={{ $apiUrl }}' >> ~/.openclaw/.env</x-code-block>
+                    <p class="mt-2 text-xs text-gray-500 dark:text-gray-400">
+                        This goes in <code class="rounded bg-stone-100 px-1.5 py-0.5 text-xs dark:bg-gray-900">~/.openclaw/.env</code> which is loaded by all agents. If it's already there from setting up a previous agent, skip this.
+                    </p>
+                </div>
+
+                {{-- Sub-section B: Agent Token (per-agent) --}}
+                <div style="padding: 16px 32px 0 32px;">
+                    <h4 class="text-sm font-semibold text-gray-800 dark:text-gray-200 mb-2">Agent Token (per-agent, in workspace .env)</h4>
+                    <p class="mb-0 text-sm text-gray-600 dark:text-gray-300">
+                        Store this agent's token in its workspace <code class="rounded bg-stone-100 px-1.5 py-0.5 text-xs dark:bg-gray-900">.env</code> file. This ensures each agent uses its own token.
+                    </p>
+                </div>
+
+                {{-- Tabs for token storage --}}
                 <div class="flex border-b border-gray-200 dark:border-gray-700 mt-4">
                     <button
                         wire:click="setEnvTab('dotenv')"
                         class="flex-1 px-3 py-3 text-xs font-medium transition-colors text-gray-500 hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-300"
                         @if ($envTab === 'dotenv') style="color: #4f46e5; border-bottom: 2px solid #4f46e5;" @endif
                     >
-                        .env File (Recommended)
+                        Workspace .env (Recommended)
                     </button>
                     <button
                         wire:click="setEnvTab('json')"
                         class="flex-1 px-3 py-3 text-xs font-medium transition-colors text-gray-500 hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-300"
                         @if ($envTab === 'json') style="color: #4f46e5; border-bottom: 2px solid #4f46e5;" @endif
                     >
-                        openclaw.json
-                    </button>
-                    <button
-                        wire:click="setEnvTab('shell')"
-                        class="flex-1 px-3 py-3 text-xs font-medium transition-colors text-gray-500 hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-300"
-                        @if ($envTab === 'shell') style="color: #4f46e5; border-bottom: 2px solid #4f46e5;" @endif
-                    >
-                        Shell Profile
+                        openclaw.json env
                     </button>
                     <button
                         wire:click="setEnvTab('agent')"
@@ -497,55 +526,32 @@ mkdir -p {{ $workspacePath }}/skills/mission-control-tasks</x-code-block>
 
                 <div style="padding: 20px 32px;">
                     @if ($envTab === 'dotenv')
-                        <p class="mb-3 text-sm text-gray-600 dark:text-gray-300">
-                            Add these to your OpenClaw environment file. This is the simplest option — OpenClaw loads it automatically on startup.
-                        </p>
-                        <x-code-block language="bash">cat >> ~/.openclaw/.env << 'EOF'
-MC_API_URL={{ $apiUrl }}
-MC_AGENT_TOKEN={{ $tokenValue }}
-EOF</x-code-block>
+                        <x-code-block language="bash">echo 'MC_AGENT_TOKEN={{ $tokenValue }}' >> {{ $workspacePath }}/.env</x-code-block>
                         <p class="mt-3 text-xs text-gray-500 dark:text-gray-400">
-                            No restart of your shell needed. OpenClaw picks up <code class="rounded bg-stone-100 px-1.5 py-0.5 text-xs dark:bg-gray-900">~/.openclaw/.env</code> on every gateway start.
+                            This creates (or appends to) a <code class="rounded bg-stone-100 px-1.5 py-0.5 text-xs dark:bg-gray-900">.env</code> file in <code class="rounded bg-stone-100 px-1.5 py-0.5 text-xs dark:bg-gray-900">{{ $workspacePath }}/</code>. When {{ $agent->name }} runs, it loads this file automatically because the workspace is its working directory.
                         </p>
 
                     @elseif ($envTab === 'json')
-                        <p class="mb-3 text-sm text-gray-600 dark:text-gray-300">
-                            Alternatively, add the variables to your <code class="rounded bg-stone-100 px-1.5 py-0.5 text-xs dark:bg-gray-900">openclaw.json</code> config's <code class="rounded bg-stone-100 px-1.5 py-0.5 text-xs dark:bg-gray-900">env</code> block:
-                        </p>
-                        <x-code-block language="json">{
-  "env": {
-    "MC_API_URL": "{{ $apiUrl }}",
-    "MC_AGENT_TOKEN": "{{ $tokenValue }}"
-  }
-}</x-code-block>
-                        <p class="mt-3 text-xs text-gray-500 dark:text-gray-400">
-                            Add this <code class="rounded bg-stone-100 px-1.5 py-0.5 text-xs dark:bg-gray-900">env</code> block at the top level of your <code class="rounded bg-stone-100 px-1.5 py-0.5 text-xs dark:bg-gray-900">openclaw.json</code> if it doesn't exist, or add these keys to the existing <code class="rounded bg-stone-100 px-1.5 py-0.5 text-xs dark:bg-gray-900">env</code> block. These are loaded after <code class="rounded bg-stone-100 px-1.5 py-0.5 text-xs dark:bg-gray-900">.env</code> and only apply if the variables aren't already set.
-                        </p>
-
-                    @elseif ($envTab === 'shell')
-                        <p class="mb-3 text-sm text-gray-600 dark:text-gray-300">
-                            Add these to your shell configuration so they're available in all terminal sessions:
-                        </p>
-                        <x-code-block language="bash">cat >> ~/.zshrc << 'EOF'
-# Mission Control
-export MC_API_URL={{ $apiUrl }}
-export MC_AGENT_TOKEN={{ $tokenValue }}
-EOF
-source ~/.zshrc</x-code-block>
-                        <p class="mt-3 text-xs text-gray-500 dark:text-gray-400">
-                            Using bash? Replace <code class="rounded bg-stone-100 px-1.5 py-0.5 text-xs dark:bg-gray-900">~/.zshrc</code> with <code class="rounded bg-stone-100 px-1.5 py-0.5 text-xs dark:bg-gray-900">~/.bashrc</code>. These take highest precedence — they override both <code class="rounded bg-stone-100 px-1.5 py-0.5 text-xs dark:bg-gray-900">.env</code> and <code class="rounded bg-stone-100 px-1.5 py-0.5 text-xs dark:bg-gray-900">openclaw.json</code> values.
-                        </p>
+                        <div class="rounded-lg p-4" style="background-color: #f0f9ff; border: 1px solid #bae6fd;">
+                            <div class="flex items-start gap-2">
+                                <x-heroicon-o-information-circle class="h-5 w-5 flex-shrink-0 mt-0.5" style="color: #0369a1;" />
+                                <p class="text-sm" style="color: #0369a1;">
+                                    OpenClaw's <code class="rounded bg-white px-1.5 py-0.5 text-xs" style="border: 1px solid #bae6fd;">env</code> block in <code class="rounded bg-white px-1.5 py-0.5 text-xs" style="border: 1px solid #bae6fd;">openclaw.json</code> is global — it doesn't support per-agent environment variables. Use the Workspace .env tab or the Ask Your Agent tab instead.
+                                </p>
+                            </div>
+                        </div>
 
                     @elseif ($envTab === 'agent')
                         <p class="mb-3 text-sm text-gray-600 dark:text-gray-300">
                             Paste this into a chat with your OpenClaw agent:
                         </p>
-                        <x-code-block>Add these environment variables to the OpenClaw configuration at ~/.openclaw/.env:
+                        <x-code-block>Add my Mission Control agent token to my workspace environment file.
 
-MC_API_URL={{ $apiUrl }}
+Append this line to {{ $workspacePath }}/.env (create the file if it doesn't exist):
+
 MC_AGENT_TOKEN={{ $tokenValue }}
 
-Append them to the file if it already exists. Don't overwrite existing variables.</x-code-block>
+Don't overwrite the file — append to it. Also make sure MC_API_URL={{ $apiUrl }} exists in ~/.openclaw/.env (add it if it's not already there).</x-code-block>
                     @endif
 
                     @if (! $plainToken && $envTab !== 'agent')
@@ -780,7 +786,7 @@ SOUL_EOF</x-code-block>
                         <x-code-block>{{ $curlCommand }}</x-code-block>
 
                         <p class="mt-3 text-sm text-gray-600 dark:text-gray-300">
-                            This uses the <code class="rounded bg-stone-100 px-1.5 py-0.5 text-xs dark:bg-gray-900">MC_API_URL</code> and <code class="rounded bg-stone-100 px-1.5 py-0.5 text-xs dark:bg-gray-900">MC_AGENT_TOKEN</code> environment variables you configured in Step 5. If you get an "unauthorized" error or empty variable, your env vars aren't loaded — run <code class="rounded bg-stone-100 px-1.5 py-0.5 text-xs dark:bg-gray-900">source ~/.zshrc</code> (or <code class="rounded bg-stone-100 px-1.5 py-0.5 text-xs dark:bg-gray-900">source ~/.bashrc</code>) first, or check your <code class="rounded bg-stone-100 px-1.5 py-0.5 text-xs dark:bg-gray-900">~/.openclaw/.env</code> file.
+                            This sources your agent's workspace <code class="rounded bg-stone-100 px-1.5 py-0.5 text-xs dark:bg-gray-900">.env</code> to load <code class="rounded bg-stone-100 px-1.5 py-0.5 text-xs dark:bg-gray-900">MC_AGENT_TOKEN</code>, then runs the curl command. The <code class="rounded bg-stone-100 px-1.5 py-0.5 text-xs dark:bg-gray-900">MC_API_URL</code> is loaded from <code class="rounded bg-stone-100 px-1.5 py-0.5 text-xs dark:bg-gray-900">~/.openclaw/.env</code>.
                         </p>
 
                         <p class="mt-3 text-xs text-gray-500 dark:text-gray-400">

@@ -371,10 +371,12 @@ BASH;
 
 This skill connects to Mission Control to report your current status and retrieve any pending work, notifications, or configuration changes. Run it whenever your cron schedule triggers.
 
-## Environment Variables
+## Required Environment Variables
 
-- `$MC_API_URL` — Base URL of the Mission Control API (e.g. `https://app.example.com/api/v1`)
-- `$MC_AGENT_TOKEN` — Your authentication token (Bearer token)
+- `MC_API_URL` — Your Mission Control API endpoint. Usually set in `~/.openclaw/.env` (shared across all agents).
+- `MC_AGENT_TOKEN` — This agent's unique API token. Should be set in your workspace `.env` file (e.g., `~/.openclaw/workspace-{slug}/.env`), NOT in the global `.env`, to avoid token collisions in multi-agent setups.
+
+These are loaded automatically by OpenClaw — no manual sourcing needed.
 
 ## Step 1: Check In
 
@@ -520,10 +522,12 @@ MD;
 
 This skill covers all task management, messaging, and artifact operations through the Mission Control API.
 
-## Environment Variables
+## Required Environment Variables
 
-- `$MC_API_URL` — Base URL of the Mission Control API (e.g. `https://app.example.com/api/v1`)
-- `$MC_AGENT_TOKEN` — Your authentication token (Bearer token)
+- `MC_API_URL` — Your Mission Control API endpoint. Usually set in `~/.openclaw/.env` (shared across all agents).
+- `MC_AGENT_TOKEN` — This agent's unique API token. Set in your workspace `.env` file, NOT in the global `.env`, to avoid token collisions in multi-agent setups.
+
+These are loaded automatically by OpenClaw — no manual sourcing needed.
 
 ---
 
@@ -985,11 +989,14 @@ MD;
 
     private function curlCommand(): string
     {
-        return <<<'BASH'
-curl -s -X POST "$MC_API_URL/heartbeat" \
-  -H "Authorization: Bearer $MC_AGENT_TOKEN" \
-  -H "Content-Type: application/json" \
-  -H "Accept: application/json" \
+        $wp = $this->agent->workspace_path;
+
+        return <<<BASH
+source ~/.openclaw/.env && source {$wp}/.env && \\
+curl -s -X POST "\$MC_API_URL/heartbeat" \\
+  -H "Authorization: Bearer \$MC_AGENT_TOKEN" \\
+  -H "Content-Type: application/json" \\
+  -H "Accept: application/json" \\
   -d '{"status": "idle"}' | python3 -m json.tool
 BASH;
     }
