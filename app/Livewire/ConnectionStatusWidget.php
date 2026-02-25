@@ -103,6 +103,18 @@ class ConnectionStatusWidget extends Component
 
     public function render(): \Illuminate\Contracts\View\View
     {
-        return view('livewire.connection-status-widget');
+        $allAgents = Agent::query()->orderBy('name')->get();
+        $unconfiguredAgents = $allAgents
+            ->filter(fn (Agent $a) => $a->id !== $this->agent->id && $a->last_heartbeat_at === null);
+        $nextAgent = $unconfiguredAgents->first();
+        $isMultiAgent = $allAgents->count() > 1;
+        $totalAgents = $allAgents->count();
+
+        return view('livewire.connection-status-widget', [
+            'nextAgent' => $nextAgent,
+            'unconfiguredAgents' => $unconfiguredAgents,
+            'isMultiAgent' => $isMultiAgent,
+            'totalAgents' => $totalAgents,
+        ]);
     }
 }

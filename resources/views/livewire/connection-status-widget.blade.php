@@ -31,16 +31,35 @@
                 </div>
             </div>
             <div class="mt-4 flex items-center gap-3">
-                <x-filament::button
-                    tag="a"
-                    :href="url('home')"
-                    icon="heroicon-o-arrow-right"
-                    icon-position="after"
-                    color="success"
-                    size="sm"
-                >
-                    Go to Dashboard
-                </x-filament::button>
+                @if ($isMultiAgent && $nextAgent)
+                    <x-filament::button
+                        tag="a"
+                        :href="url('agents/' . $nextAgent->id . '/setup')"
+                        icon="heroicon-o-arrow-right"
+                        icon-position="after"
+                        color="success"
+                        size="sm"
+                    >
+                        Set up {{ $nextAgent->name }}
+                    </x-filament::button>
+                    <x-filament::link
+                        :href="url('home')"
+                        size="sm"
+                    >
+                        Go to Dashboard
+                    </x-filament::link>
+                @else
+                    <x-filament::button
+                        tag="a"
+                        :href="url('home')"
+                        icon="heroicon-o-arrow-right"
+                        icon-position="after"
+                        color="success"
+                        size="sm"
+                    >
+                        {{ $isMultiAgent ? 'All agents connected! Go to Dashboard' : 'Go to Dashboard' }}
+                    </x-filament::button>
+                @endif
                 <x-filament::link
                     :href="\App\Filament\Resources\AgentResource::getUrl('view', ['record' => $agent])"
                     size="sm"
@@ -48,6 +67,11 @@
                     View agent details
                 </x-filament::link>
             </div>
+            @if ($isMultiAgent && $unconfiguredAgents->isNotEmpty())
+                <p class="mt-3 text-xs" style="color: #64748b;">
+                    Remaining: {{ $unconfiguredAgents->pluck('name')->join(', ') }} ({{ $unconfiguredAgents->count() }} of {{ $totalAgents }} agents still need setup)
+                </p>
+            @endif
         </div>
 
     @elseif ($state === 'error')

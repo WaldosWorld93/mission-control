@@ -145,3 +145,59 @@ it('detects error status via polling', function () {
         ->assertSet('state', 'error')
         ->assertSet('agentStatus', 'error');
 });
+
+it('shows next agent setup button when squad has unconfigured agents', function () {
+    $this->agent->update([
+        'last_heartbeat_at' => now(),
+        'status' => AgentStatus::Idle,
+    ]);
+
+    $nextAgent = Agent::factory()->create([
+        'team_id' => $this->team->id,
+        'name' => 'Data Analyst',
+    ]);
+
+    $this->actingAs($this->user);
+
+    Livewire::test(\App\Livewire\ConnectionStatusWidget::class, ['agent' => $this->agent])
+        ->assertSet('state', 'connected')
+        ->assertSee('Set up Data Analyst')
+        ->assertSee("agents/{$nextAgent->id}/setup")
+        ->assertSee('Remaining:');
+});
+
+it('shows all agents connected when squad is fully configured', function () {
+    $this->agent->update([
+        'last_heartbeat_at' => now(),
+        'status' => AgentStatus::Idle,
+    ]);
+
+    Agent::factory()->create([
+        'team_id' => $this->team->id,
+        'name' => 'Data Analyst',
+        'last_heartbeat_at' => now(),
+        'status' => AgentStatus::Idle,
+    ]);
+
+    $this->actingAs($this->user);
+
+    Livewire::test(\App\Livewire\ConnectionStatusWidget::class, ['agent' => $this->agent])
+        ->assertSet('state', 'connected')
+        ->assertSee('All agents connected! Go to Dashboard')
+        ->assertDontSee('Remaining:');
+});
+
+it('shows simple dashboard button for single agent', function () {
+    $this->agent->update([
+        'last_heartbeat_at' => now(),
+        'status' => AgentStatus::Idle,
+    ]);
+
+    $this->actingAs($this->user);
+
+    Livewire::test(\App\Livewire\ConnectionStatusWidget::class, ['agent' => $this->agent])
+        ->assertSet('state', 'connected')
+        ->assertSee('Go to Dashboard')
+        ->assertDontSee('Remaining:')
+        ->assertDontSee('All agents connected');
+});
