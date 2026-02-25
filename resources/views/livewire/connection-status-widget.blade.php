@@ -1,4 +1,4 @@
-<div wire:poll.30s>
+<div wire:poll.5s="checkHeartbeat">
     @if ($state === 'waiting')
         {{-- Waiting State --}}
         <div class="rounded-xl bg-white p-5 dark:bg-gray-800" style="border: 1px solid #e2e8f0; border-left: 3px solid #6366f1;">

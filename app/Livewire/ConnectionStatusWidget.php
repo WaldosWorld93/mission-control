@@ -17,6 +17,8 @@ class ConnectionStatusWidget extends Component
 
     public ?string $soulHashMatch = null;
 
+    public ?string $lastCheckedAt = null;
+
     public function mount(Agent $agent): void
     {
         $this->agent = $agent;
@@ -26,6 +28,34 @@ class ConnectionStatusWidget extends Component
             $this->state = 'connected';
             $this->connectedAt = $this->agent->last_heartbeat_at->diffForHumans();
             $this->agentStatus = $this->agent->status->value;
+            $this->lastCheckedAt = $this->agent->last_heartbeat_at->toIso8601String();
+        }
+    }
+
+    public function checkHeartbeat(): void
+    {
+        $fresh = $this->agent->fresh();
+
+        if (! $fresh || $fresh->last_heartbeat_at === null) {
+            return;
+        }
+
+        $freshTimestamp = $fresh->last_heartbeat_at->toIso8601String();
+
+        // Only update if heartbeat is newer than what we last saw
+        if ($this->lastCheckedAt === $freshTimestamp) {
+            return;
+        }
+
+        $this->lastCheckedAt = $freshTimestamp;
+        $this->agent = $fresh;
+        $this->agentStatus = $fresh->status->value;
+        $this->connectedAt = $fresh->last_heartbeat_at->diffForHumans();
+
+        if ($fresh->status->value === 'error') {
+            $this->state = 'error';
+        } else {
+            $this->state = 'connected';
         }
     }
 

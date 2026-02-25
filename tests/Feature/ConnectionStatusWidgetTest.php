@@ -94,3 +94,54 @@ it('displays agent name in waiting message', function () {
     Livewire::test(\App\Livewire\ConnectionStatusWidget::class, ['agent' => $this->agent])
         ->assertSeeText('Scout');
 });
+
+it('transitions to connected via polling when heartbeat is received', function () {
+    $this->actingAs($this->user);
+
+    $component = Livewire::test(\App\Livewire\ConnectionStatusWidget::class, ['agent' => $this->agent])
+        ->assertSet('state', 'waiting');
+
+    // Simulate a heartbeat arriving in the database
+    $this->agent->update([
+        'last_heartbeat_at' => now(),
+        'status' => AgentStatus::Online,
+    ]);
+
+    $component->call('checkHeartbeat')
+        ->assertSet('state', 'connected')
+        ->assertSet('agentStatus', 'online');
+});
+
+it('does not update state when no new heartbeat on poll', function () {
+    $this->agent->update([
+        'last_heartbeat_at' => now()->subMinutes(5),
+        'status' => AgentStatus::Idle,
+    ]);
+
+    $this->actingAs($this->user);
+
+    $component = Livewire::test(\App\Livewire\ConnectionStatusWidget::class, ['agent' => $this->agent])
+        ->assertSet('state', 'connected')
+        ->assertSet('agentStatus', 'idle');
+
+    // Calling checkHeartbeat without a new heartbeat should not change anything
+    $component->call('checkHeartbeat')
+        ->assertSet('state', 'connected')
+        ->assertSet('agentStatus', 'idle');
+});
+
+it('detects error status via polling', function () {
+    $this->actingAs($this->user);
+
+    $component = Livewire::test(\App\Livewire\ConnectionStatusWidget::class, ['agent' => $this->agent])
+        ->assertSet('state', 'waiting');
+
+    $this->agent->update([
+        'last_heartbeat_at' => now(),
+        'status' => AgentStatus::Error,
+    ]);
+
+    $component->call('checkHeartbeat')
+        ->assertSet('state', 'error')
+        ->assertSet('agentStatus', 'error');
+});
