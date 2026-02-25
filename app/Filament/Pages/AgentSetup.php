@@ -261,21 +261,41 @@ MD;
 
     private function toolsMd(): string
     {
-        $skills = $this->agent->skills ?? [];
+        $toolsConfig = $this->agent->getToolsConfig();
+        $profile = $toolsConfig['profile'] ?? 'full';
+        $allowGroups = $toolsConfig['allow'] ?? [];
+
+        $profileDescriptions = [
+            'full' => 'All available tools including filesystem, runtime, web browsing, and session management',
+            'coding' => 'Filesystem operations, code execution, and development tools',
+            'messaging' => 'Communication tools and session management for inter-agent coordination',
+            'minimal' => 'Basic filesystem read/write only',
+        ];
+
+        $groupDescriptions = [
+            'group:fs' => 'Filesystem operations (read, write, edit, glob, grep)',
+            'group:runtime' => 'Code execution and process management (bash, python, node)',
+            'group:web' => 'Web browsing and search capabilities',
+            'group:sessions' => 'Session management and inter-agent communication (sessions_send, sessions_spawn)',
+        ];
+
         $content = "# Available Tools\n\n";
         $content .= "## Mission Control Skills\n\n";
-        $content .= "- **mission-control-heartbeat** — Syncs with Mission Control to check in and retrieve work\n";
-        $content .= "- **mission-control-tasks** — Manages tasks, messages, artifacts, and threads\n";
+        $content .= "- **mission-control-heartbeat** — Syncs with Mission Control to check in, report status, and retrieve pending work\n";
+        $content .= "- **mission-control-tasks** — Manages tasks, messages, artifacts, and threads through the Mission Control API\n";
 
-        if (! empty($skills)) {
-            $content .= "\n## Agent Skills\n\n";
-            foreach ($skills as $skill) {
-                $content .= "- **{$skill}**\n";
+        $content .= "\n## Tool Profile: {$profile}\n\n";
+        $content .= "This agent uses the `{$profile}` tool profile, which provides access to:\n";
+        $content .= ($profileDescriptions[$profile] ?? $profileDescriptions['full'])."\n";
+
+        if (! empty($allowGroups)) {
+            $content .= "\n### Additional Access\n\n";
+            foreach ($allowGroups as $group) {
+                $desc = $groupDescriptions[$group] ?? $group;
+                $label = str_replace('group:', '', $group);
+                $content .= '- **'.ucfirst($label)." tools** — {$desc}\n";
             }
         }
-
-        $content .= "\n## Standard Tools\n\n";
-        $content .= "- Bash, Read, Write, Edit, Glob, Grep\n";
 
         return $content;
     }
