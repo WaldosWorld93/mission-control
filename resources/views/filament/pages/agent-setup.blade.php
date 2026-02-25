@@ -86,10 +86,11 @@
 
                 <div style="padding: 20px 32px;">
                     @if ($skillTab === 'ask')
-                        <p class="mb-3 text-sm text-gray-600 dark:text-gray-300">
-                            Paste this into a chat with your OpenClaw agent. It will update the gateway configuration automatically:
-                        </p>
-                        <x-code-block>Add a new agent to my openclaw.json configuration at ~/.openclaw/openclaw.json.
+                        @if ($agent->is_lead)
+                            <p class="mb-3 text-sm text-gray-600 dark:text-gray-300">
+                                Paste this into a chat with your <strong>{{ $agent->name }}</strong> agent:
+                            </p>
+                            <x-code-block>Add a new agent to my openclaw.json configuration at ~/.openclaw/openclaw.json.
 
 Add this entry to the "agents" array (create the array if it doesn't exist):
 
@@ -98,6 +99,33 @@ Add this entry to the "agents" array (create the array if it doesn't exist):
 The "tools" object controls which tools the agent has access to. The "profile" sets the base set of tools, and "allow"/"deny" can override specific tool groups.
 
 Don't create a new file — add this to the existing openclaw.json. If there are already other agents in the array, add this one alongside them.</x-code-block>
+                        @elseif ($leadAgent)
+                            <p class="mb-3 text-sm text-gray-600 dark:text-gray-300">
+                                Paste this into a chat with your main agent (<strong>{{ $leadAgent->name }}</strong>). It will delegate the task to {{ $agent->name }}:
+                            </p>
+                            <x-code-block>Tell {{ $agent->name }} to add a new agent entry to the openclaw.json configuration at ~/.openclaw/openclaw.json.
+
+It should add this entry to the "agents" array (create the array if it doesn't exist):
+
+{{ $openclawAgentConfig }}
+
+The "tools" object controls which tools the agent has access to. The "profile" sets the base set of tools, and "allow"/"deny" can override specific tool groups.
+
+Don't create a new file — add this to the existing openclaw.json. If there are already other agents in the array, add this one alongside them.</x-code-block>
+                        @else
+                            <p class="mb-3 text-sm text-gray-600 dark:text-gray-300">
+                                Paste this into a chat with your OpenClaw agent:
+                            </p>
+                            <x-code-block>Add a new agent to my openclaw.json configuration at ~/.openclaw/openclaw.json.
+
+Add this entry to the "agents" array (create the array if it doesn't exist):
+
+{{ $openclawAgentConfig }}
+
+The "tools" object controls which tools the agent has access to. The "profile" sets the base set of tools, and "allow"/"deny" can override specific tool groups.
+
+Don't create a new file — add this to the existing openclaw.json. If there are already other agents in the array, add this one alongside them.</x-code-block>
+                        @endif
                     @else
                         <p class="mb-3 text-sm text-gray-600 dark:text-gray-300">
                             Add this agent configuration to the <code class="rounded bg-stone-100 px-1.5 py-0.5 text-xs dark:bg-gray-900">agents</code> array in your <code class="rounded bg-stone-100 px-1.5 py-0.5 text-xs dark:bg-gray-900">openclaw.json</code>:
@@ -163,12 +191,28 @@ Don't create a new file — add this to the existing openclaw.json. If there are
 
                 <div style="padding: 20px 32px;">
                     @if ($skillTab === 'ask')
-                        <p class="mb-3 text-sm text-gray-600 dark:text-gray-300">
-                            Paste this into a chat with your OpenClaw agent. It will create all workspace files automatically:
-                        </p>
-                        <x-code-block>Create the workspace files for the {{ $agent->name }} agent. Run this script:
+                        @if ($agent->is_lead)
+                            <p class="mb-3 text-sm text-gray-600 dark:text-gray-300">
+                                Paste this into a chat with your <strong>{{ $agent->name }}</strong> agent:
+                            </p>
+                            <x-code-block>Create the workspace files for the {{ $agent->name }} agent. Run this script:
 
 {{ $createAllFilesScript }}</x-code-block>
+                        @elseif ($leadAgent)
+                            <p class="mb-3 text-sm text-gray-600 dark:text-gray-300">
+                                Paste this into a chat with your main agent (<strong>{{ $leadAgent->name }}</strong>). It will delegate the task to {{ $agent->name }}:
+                            </p>
+                            <x-code-block>Tell {{ $agent->name }} to create its workspace files by running this script:
+
+{{ $createAllFilesScript }}</x-code-block>
+                        @else
+                            <p class="mb-3 text-sm text-gray-600 dark:text-gray-300">
+                                Paste this into a chat with your OpenClaw agent:
+                            </p>
+                            <x-code-block>Create the workspace files for the {{ $agent->name }} agent. Run this script:
+
+{{ $createAllFilesScript }}</x-code-block>
+                        @endif
                     @else
                         {{-- Copy Setup Script button --}}
                         <div class="mb-4" x-data="{ copied: false }">
@@ -339,13 +383,31 @@ Don't create a new file — add this to the existing openclaw.json. If there are
 
                 <div style="padding: 20px 32px;">
                     @if ($skillTab === 'ask')
-                        <p class="mb-3 text-sm text-gray-600 dark:text-gray-300">
-                            Paste this into a chat with your OpenClaw agent. It will create the skill files automatically:
-                        </p>
-                        <x-code-block>Create two new skill files in the agent workspace:
+                        @if ($agent->is_lead)
+                            <p class="mb-3 text-sm text-gray-600 dark:text-gray-300">
+                                Paste this into a chat with your <strong>{{ $agent->name }}</strong> agent:
+                            </p>
+                            <x-code-block>Create two new skill files in the agent workspace:
 
 1. Create `{{ $workspacePath }}/skills/mission-control-heartbeat/SKILL.md` with the content below.
 2. Create `{{ $workspacePath }}/skills/mission-control-tasks/SKILL.md` with the content below.</x-code-block>
+                        @elseif ($leadAgent)
+                            <p class="mb-3 text-sm text-gray-600 dark:text-gray-300">
+                                Paste this into a chat with your main agent (<strong>{{ $leadAgent->name }}</strong>). It will delegate the task to {{ $agent->name }}:
+                            </p>
+                            <x-code-block>Tell {{ $agent->name }} to create two new skill files in its workspace:
+
+1. Create `{{ $workspacePath }}/skills/mission-control-heartbeat/SKILL.md` with the content below.
+2. Create `{{ $workspacePath }}/skills/mission-control-tasks/SKILL.md` with the content below.</x-code-block>
+                        @else
+                            <p class="mb-3 text-sm text-gray-600 dark:text-gray-300">
+                                Paste this into a chat with your OpenClaw agent:
+                            </p>
+                            <x-code-block>Create two new skill files in the agent workspace:
+
+1. Create `{{ $workspacePath }}/skills/mission-control-heartbeat/SKILL.md` with the content below.
+2. Create `{{ $workspacePath }}/skills/mission-control-tasks/SKILL.md` with the content below.</x-code-block>
+                        @endif
 
                         <div class="mt-4 space-y-2">
                             {{-- Collapsible: heartbeat skill --}}
@@ -525,16 +587,40 @@ echo 'MC_API_URL={{ $apiUrl }}' >> ~/.openclaw/.env</x-code-block>
                         </p>
 
                     @elseif ($envTab === 'agent')
-                        <p class="mb-3 text-sm text-gray-600 dark:text-gray-300">
-                            Paste this into a chat with your OpenClaw agent:
-                        </p>
-                        <x-code-block>Add my Mission Control agent token to my workspace environment file.
+                        @if ($agent->is_lead)
+                            <p class="mb-3 text-sm text-gray-600 dark:text-gray-300">
+                                Paste this into a chat with your <strong>{{ $agent->name }}</strong> agent:
+                            </p>
+                            <x-code-block>Add my Mission Control agent token to my workspace environment file.
 
 Append this line to {{ $workspacePath }}/.env (create the file if it doesn't exist):
 
 MC_AGENT_TOKEN={{ $tokenValue }}
 
 Don't overwrite the file — append to it. Also make sure MC_API_URL={{ $apiUrl }} exists in ~/.openclaw/.env (add it if it's not already there).</x-code-block>
+                        @elseif ($leadAgent)
+                            <p class="mb-3 text-sm text-gray-600 dark:text-gray-300">
+                                Paste this into a chat with your main agent (<strong>{{ $leadAgent->name }}</strong>). It will delegate the task to {{ $agent->name }}:
+                            </p>
+                            <x-code-block>Tell {{ $agent->name }} to add its Mission Control agent token to its workspace environment file.
+
+It should append this line to {{ $workspacePath }}/.env (create the file if it doesn't exist):
+
+MC_AGENT_TOKEN={{ $tokenValue }}
+
+Don't overwrite the file — append to it. Also make sure MC_API_URL={{ $apiUrl }} exists in ~/.openclaw/.env (add it if it's not already there).</x-code-block>
+                        @else
+                            <p class="mb-3 text-sm text-gray-600 dark:text-gray-300">
+                                Paste this into a chat with your OpenClaw agent:
+                            </p>
+                            <x-code-block>Add my Mission Control agent token to my workspace environment file.
+
+Append this line to {{ $workspacePath }}/.env (create the file if it doesn't exist):
+
+MC_AGENT_TOKEN={{ $tokenValue }}
+
+Don't overwrite the file — append to it. Also make sure MC_API_URL={{ $apiUrl }} exists in ~/.openclaw/.env (add it if it's not already there).</x-code-block>
+                        @endif
                     @endif
 
                     @if (! $plainToken && $envTab !== 'agent')
@@ -576,16 +662,40 @@ Don't overwrite the file — append to it. Also make sure MC_API_URL={{ $apiUrl 
 
                 <div style="padding: 20px 32px;">
                     @if ($skillTab === 'ask')
-                        <p class="mb-3 text-sm text-gray-600 dark:text-gray-300">
-                            Paste this into a chat with your OpenClaw agent. It will add the heartbeat cron to your configuration automatically:
-                        </p>
-                        <x-code-block>Add a heartbeat cron to the openclaw.json configuration at ~/.openclaw/openclaw.json.
+                        @if ($agent->is_lead)
+                            <p class="mb-3 text-sm text-gray-600 dark:text-gray-300">
+                                Paste this into a chat with your <strong>{{ $agent->name }}</strong> agent:
+                            </p>
+                            <x-code-block>Add a heartbeat cron to the openclaw.json configuration at ~/.openclaw/openclaw.json.
 
 In the agent config for "{{ $agentSlug }}", add a "crons" array with this entry:
 
 {{ $cronOnlyConfig }}
 
 Add the crons array to the existing agent entry — don't create a new agent or duplicate the config.</x-code-block>
+                        @elseif ($leadAgent)
+                            <p class="mb-3 text-sm text-gray-600 dark:text-gray-300">
+                                Paste this into a chat with your main agent (<strong>{{ $leadAgent->name }}</strong>). It will delegate the task to {{ $agent->name }}:
+                            </p>
+                            <x-code-block>Tell {{ $agent->name }} to add a heartbeat cron to the openclaw.json configuration at ~/.openclaw/openclaw.json.
+
+In the agent config for "{{ $agentSlug }}", it should add a "crons" array with this entry:
+
+{{ $cronOnlyConfig }}
+
+Add the crons array to the existing agent entry — don't create a new agent or duplicate the config.</x-code-block>
+                        @else
+                            <p class="mb-3 text-sm text-gray-600 dark:text-gray-300">
+                                Paste this into a chat with your OpenClaw agent:
+                            </p>
+                            <x-code-block>Add a heartbeat cron to the openclaw.json configuration at ~/.openclaw/openclaw.json.
+
+In the agent config for "{{ $agentSlug }}", add a "crons" array with this entry:
+
+{{ $cronOnlyConfig }}
+
+Add the crons array to the existing agent entry — don't create a new agent or duplicate the config.</x-code-block>
+                        @endif
                     @else
                         <p class="mb-4 text-sm text-gray-600 dark:text-gray-300">
                             The heartbeat is a cron job that makes your agent check in with Mission Control on a schedule.
@@ -681,12 +791,28 @@ Add the crons array to the existing agent entry — don't create a new agent or 
 
                     <div style="padding: 20px 32px;">
                         @if ($skillTab === 'ask')
-                            <p class="mb-3 text-sm text-gray-600 dark:text-gray-300">
-                                Paste this into a chat with your <strong>{{ $agent->name }}</strong> agent:
-                            </p>
-                            <x-code-block>Save this as your SOUL.md file at {{ $workspacePath }}/SOUL.md:
+                            @if ($agent->is_lead)
+                                <p class="mb-3 text-sm text-gray-600 dark:text-gray-300">
+                                    Paste this into a chat with your <strong>{{ $agent->name }}</strong> agent:
+                                </p>
+                                <x-code-block>Save this as your SOUL.md file at {{ $workspacePath }}/SOUL.md:
 
 {{ $agent->soul_md }}</x-code-block>
+                            @elseif ($leadAgent)
+                                <p class="mb-3 text-sm text-gray-600 dark:text-gray-300">
+                                    Paste this into a chat with your main agent (<strong>{{ $leadAgent->name }}</strong>). It will delegate the task to {{ $agent->name }}:
+                                </p>
+                                <x-code-block>Tell {{ $agent->name }} to save this as its SOUL.md file at {{ $workspacePath }}/SOUL.md:
+
+{{ $agent->soul_md }}</x-code-block>
+                            @else
+                                <p class="mb-3 text-sm text-gray-600 dark:text-gray-300">
+                                    Paste this into a chat with your <strong>{{ $agent->name }}</strong> agent:
+                                </p>
+                                <x-code-block>Save this as your SOUL.md file at {{ $workspacePath }}/SOUL.md:
+
+{{ $agent->soul_md }}</x-code-block>
+                            @endif
                         @else
                             <p class="mb-3 text-sm text-gray-600 dark:text-gray-300">
                                 Create the SOUL.md file in your agent's workspace:
@@ -746,11 +872,25 @@ SOUL_EOF</x-code-block>
 
                 <div style="padding: 20px 32px;">
                     @if ($skillTab === 'ask')
-                        <p class="mb-3 text-sm text-gray-600 dark:text-gray-300">
-                            The best way to test is to have your agent actually run the heartbeat. This proves the agent is fully configured with skills, env vars, and cron. Paste this into a chat with your <strong>{{ $agent->name }}</strong> agent:
-                        </p>
+                        @if ($agent->is_lead)
+                            <p class="mb-3 text-sm text-gray-600 dark:text-gray-300">
+                                The best way to test is to have your agent actually run the heartbeat. This proves the agent is fully configured with skills, env vars, and cron. Paste this into a chat with your <strong>{{ $agent->name }}</strong> agent:
+                            </p>
 
-                        <x-code-block>Run the mission-control-heartbeat skill now. Sync with Mission Control, report your status, and check for pending work.</x-code-block>
+                            <x-code-block>Run the mission-control-heartbeat skill now. Sync with Mission Control, report your status, and check for pending work.</x-code-block>
+                        @elseif ($leadAgent)
+                            <p class="mb-3 text-sm text-gray-600 dark:text-gray-300">
+                                The best way to test is to have the agent actually run the heartbeat. Paste this into a chat with your main agent (<strong>{{ $leadAgent->name }}</strong>). It will tell {{ $agent->name }} to run its heartbeat:
+                            </p>
+
+                            <x-code-block>Tell {{ $agent->name }} to run the mission-control-heartbeat skill now. It should sync with Mission Control, report its status, and check for pending work.</x-code-block>
+                        @else
+                            <p class="mb-3 text-sm text-gray-600 dark:text-gray-300">
+                                The best way to test is to have your agent actually run the heartbeat. This proves the agent is fully configured with skills, env vars, and cron. Paste this into a chat with your <strong>{{ $agent->name }}</strong> agent:
+                            </p>
+
+                            <x-code-block>Run the mission-control-heartbeat skill now. Sync with Mission Control, report your status, and check for pending work.</x-code-block>
+                        @endif
 
                         <p class="mt-3 text-sm text-gray-600 dark:text-gray-300">
                             This is the exact message your heartbeat cron will send on every trigger. If the agent can do it manually, the cron will work too. Watch the widget below — it should turn green within a few seconds.

@@ -109,6 +109,10 @@ class AgentSetup extends Page
 
         $heartbeatModel = $this->agent->heartbeat_model ?? 'anthropic/claude-haiku-4-5';
 
+        $leadAgent = $this->agent->is_lead
+            ? null
+            : Agent::query()->lead()->first();
+
         return [
             'apiUrl' => $apiUrl,
             'heartbeatModel' => $heartbeatModel,
@@ -116,6 +120,7 @@ class AgentSetup extends Page
             'cronExpr' => $cronExpr,
             'agentSlug' => $this->agent->slug,
             'workspacePath' => $this->agent->workspace_path,
+            'leadAgent' => $leadAgent,
             'openclawAgentConfig' => $this->openclawAgentConfig(),
             'openclawFullConfig' => $this->openclawFullConfig(),
             'identityMd' => $this->identityMd(),

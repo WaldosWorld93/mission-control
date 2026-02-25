@@ -369,3 +369,55 @@ it('workspace files contain agent-specific content', function () {
     expect($toolsMd)->toContain('mission-control-heartbeat');
     expect($toolsMd)->toContain('mission-control-tasks');
 });
+
+it('passes lead agent to view for non-lead agents', function () {
+    $lead = Agent::factory()->create([
+        'team_id' => $this->team->id,
+        'name' => 'Commander',
+        'is_lead' => true,
+    ]);
+
+    $this->actingAs($this->user);
+
+    $page = Livewire::test(\App\Filament\Pages\AgentSetup::class, ['agent' => $this->agent]);
+
+    $leadAgent = $page->viewData('leadAgent');
+    expect($leadAgent)->not->toBeNull();
+    expect($leadAgent->id)->toBe($lead->id);
+});
+
+it('passes null lead agent for lead agent setup', function () {
+    $this->agent->update(['is_lead' => true]);
+    $this->agent->refresh();
+
+    $this->actingAs($this->user);
+
+    $page = Livewire::test(\App\Filament\Pages\AgentSetup::class, ['agent' => $this->agent]);
+
+    expect($page->viewData('leadAgent'))->toBeNull();
+});
+
+it('shows delegation text for non-lead agent when lead exists', function () {
+    Agent::factory()->create([
+        'team_id' => $this->team->id,
+        'name' => 'Commander',
+        'is_lead' => true,
+    ]);
+
+    $this->actingAs($this->user);
+
+    Livewire::test(\App\Filament\Pages\AgentSetup::class, ['agent' => $this->agent])
+        ->assertSee('Commander')
+        ->assertSee('Tell Scout');
+});
+
+it('shows direct prompts for lead agent', function () {
+    $this->agent->update(['is_lead' => true]);
+    $this->agent->refresh();
+
+    $this->actingAs($this->user);
+
+    Livewire::test(\App\Filament\Pages\AgentSetup::class, ['agent' => $this->agent])
+        ->assertSee('Paste this into a chat with your')
+        ->assertDontSee('It will delegate');
+});
