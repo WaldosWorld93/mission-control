@@ -174,3 +174,111 @@ it('generates default soul md with fallback values', function () {
         ->toContain('Agent')
         ->toContain('An AI agent.');
 });
+
+it('returns full tools profile for lead agents', function () {
+    $agent = Agent::factory()->lead()->create([
+        'team_id' => $this->team->id,
+        'role' => 'Lead / Orchestrator',
+    ]);
+
+    expect($agent->getToolsConfig())->toBe(['profile' => 'full']);
+});
+
+it('returns full tools profile for agents with is_lead flag regardless of role', function () {
+    $agent = Agent::factory()->lead()->create([
+        'team_id' => $this->team->id,
+        'role' => 'Developer',
+    ]);
+
+    expect($agent->getToolsConfig())->toBe(['profile' => 'full']);
+});
+
+it('returns coding tools profile for developer roles', function () {
+    $agent = Agent::factory()->create([
+        'team_id' => $this->team->id,
+        'role' => 'Full-Stack Developer',
+    ]);
+
+    expect($agent->getToolsConfig())->toBe(['profile' => 'coding']);
+});
+
+it('returns coding tools profile for QA roles', function () {
+    $agent = Agent::factory()->create([
+        'team_id' => $this->team->id,
+        'role' => 'QA / Tester',
+    ]);
+
+    expect($agent->getToolsConfig())->toBe(['profile' => 'coding']);
+});
+
+it('returns coding tools profile for DevOps roles', function () {
+    $agent = Agent::factory()->create([
+        'team_id' => $this->team->id,
+        'role' => 'DevOps / Ops',
+    ]);
+
+    expect($agent->getToolsConfig())->toBe(['profile' => 'coding']);
+});
+
+it('returns coding with web access for writer roles', function () {
+    $agent = Agent::factory()->create([
+        'team_id' => $this->team->id,
+        'role' => 'Content Writer',
+    ]);
+
+    expect($agent->getToolsConfig())->toBe([
+        'profile' => 'coding',
+        'allow' => ['group:web'],
+    ]);
+});
+
+it('returns coding with web access for researcher roles', function () {
+    $agent = Agent::factory()->create([
+        'team_id' => $this->team->id,
+        'role' => 'Researcher',
+    ]);
+
+    expect($agent->getToolsConfig())->toBe([
+        'profile' => 'coding',
+        'allow' => ['group:web'],
+    ]);
+});
+
+it('returns coding with web access for data analyst roles', function () {
+    $agent = Agent::factory()->create([
+        'team_id' => $this->team->id,
+        'role' => 'Data Analyst',
+    ]);
+
+    expect($agent->getToolsConfig())->toBe([
+        'profile' => 'coding',
+        'allow' => ['group:web'],
+    ]);
+});
+
+it('returns messaging tools profile for scheduler roles', function () {
+    $agent = Agent::factory()->create([
+        'team_id' => $this->team->id,
+        'role' => 'Scheduler / Monitor',
+    ]);
+
+    expect($agent->getToolsConfig())->toBe(['profile' => 'messaging']);
+});
+
+it('returns full tools profile as default for unknown roles', function () {
+    $agent = Agent::factory()->create([
+        'team_id' => $this->team->id,
+        'role' => 'Custom Special Agent',
+    ]);
+
+    expect($agent->getToolsConfig())->toBe(['profile' => 'full']);
+});
+
+it('returns full tools profile when role is null', function () {
+    $agent = Agent::factory()->create([
+        'team_id' => $this->team->id,
+        'role' => null,
+    ]);
+
+    expect($agent->getToolsConfig())->toBe(['profile' => 'full']);
+});

@@ -132,7 +132,7 @@ class AgentSetup extends Page
             'model' => $this->agent->work_model ?? 'anthropic/claude-sonnet-4',
             'description' => $this->agent->description ?? $this->agent->role ?? 'Agent',
             'workspace' => $this->agent->workspace_path,
-            'allowedTools' => ['Bash', 'Read', 'Write', 'Edit', 'Glob', 'Grep'],
+            'tools' => $this->agent->getToolsConfig(),
         ];
 
         return json_encode($config, JSON_PRETTY_PRINT | JSON_UNESCAPED_SLASHES);
@@ -148,7 +148,7 @@ class AgentSetup extends Page
                 'model' => $agent->work_model ?? 'anthropic/claude-sonnet-4',
                 'description' => $agent->description ?? $agent->role ?? 'Agent',
                 'workspace' => $agent->workspace_path,
-                'allowedTools' => ['Bash', 'Read', 'Write', 'Edit', 'Glob', 'Grep'],
+                'tools' => $agent->getToolsConfig(),
             ];
         })->values()->toArray();
 

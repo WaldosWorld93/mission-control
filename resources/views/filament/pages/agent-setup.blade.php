@@ -95,6 +95,8 @@ Add this entry to the "agents" array (create the array if it doesn't exist):
 
 {{ $openclawAgentConfig }}
 
+The "tools" object controls which tools I have access to. The "profile" sets the base set of tools, and "allow"/"deny" can override specific tool groups.
+
 Don't create a new file — add this to the existing openclaw.json. If there are already agents in the array, add this entry alongside them.</x-code-block>
                     @else
                         <p class="mb-3 text-sm text-gray-600 dark:text-gray-300">

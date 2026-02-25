@@ -121,6 +121,40 @@ class Agent extends Model
         return '~/.openclaw/workspace-'.$this->slug;
     }
 
+    /**
+     * @return array<string, mixed>
+     */
+    public function getToolsConfig(): array
+    {
+        $role = strtolower($this->role ?? '');
+
+        // Lead/Orchestrator agents get full tool access
+        if ($this->is_lead || Str::contains($role, ['lead', 'orchestrator'])) {
+            return ['profile' => 'full'];
+        }
+
+        // Developer/coding agents get coding tools
+        if (Str::contains($role, ['developer', 'coding', 'engineer', 'dev', 'qa', 'tester', 'testing', 'designer', 'devops', 'ops'])) {
+            return ['profile' => 'coding'];
+        }
+
+        // Writer/editor/research agents get coding + web access
+        if (Str::contains($role, ['writer', 'editor', 'research', 'analyst', 'knowledge'])) {
+            return [
+                'profile' => 'coding',
+                'allow' => ['group:web'],
+            ];
+        }
+
+        // Messaging/communication agents get messaging tools
+        if (Str::contains($role, ['messaging', 'communication', 'comms', 'scheduler', 'monitor'])) {
+            return ['profile' => 'messaging'];
+        }
+
+        // Default to full access
+        return ['profile' => 'full'];
+    }
+
     public function generateDefaultSoulMd(): string
     {
         $name = $this->name ?? 'Agent';

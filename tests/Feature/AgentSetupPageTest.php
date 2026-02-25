@@ -328,7 +328,8 @@ it('openclaw agent config contains expected keys', function () {
     expect($decoded)->toHaveKey('name', 'scout');
     expect($decoded)->toHaveKey('workspace');
     expect($decoded)->toHaveKey('model');
-    expect($decoded)->toHaveKey('allowedTools');
+    expect($decoded)->toHaveKey('tools');
+    expect($decoded['tools'])->toHaveKey('profile');
 });
 
 it('openclaw full config contains all squad agents', function () {
