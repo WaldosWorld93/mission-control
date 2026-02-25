@@ -481,3 +481,65 @@ it('does not show warning banner for lead agent setup page', function () {
     $page = Livewire::test(\App\Filament\Pages\AgentSetup::class, ['agent' => $this->agent]);
     expect($page->viewData('leadNotReady'))->toBeFalse();
 });
+
+it('shows update config title for lead agent in step 2', function () {
+    $this->agent->update(['is_lead' => true]);
+    $this->agent->refresh();
+
+    $this->actingAs($this->user);
+
+    Livewire::test(\App\Filament\Pages\AgentSetup::class, ['agent' => $this->agent])
+        ->assertSee('Update Your Main Agent Configuration')
+        ->assertDontSee('Add Agent to OpenClaw Gateway');
+});
+
+it('shows add agent title for non-lead agent in step 2', function () {
+    $this->actingAs($this->user);
+
+    Livewire::test(\App\Filament\Pages\AgentSetup::class, ['agent' => $this->agent])
+        ->assertSee('Add Agent to OpenClaw Gateway')
+        ->assertDontSee('Update Your Main Agent Configuration');
+});
+
+it('provides lead config delta and example for lead agent', function () {
+    $this->agent->update(['is_lead' => true]);
+    $this->agent->refresh();
+
+    $this->actingAs($this->user);
+
+    $page = Livewire::test(\App\Filament\Pages\AgentSetup::class, ['agent' => $this->agent]);
+
+    expect($page->viewData('leadConfigDelta'))->not->toBeNull();
+    expect($page->viewData('leadExampleConfig'))->not->toBeNull();
+
+    $delta = json_decode($page->viewData('leadConfigDelta'), true);
+    expect($delta)->toHaveKey('subagents');
+    expect($delta)->toHaveKey('crons');
+    expect($delta['subagents']['allowAgents'])->toBe(['*']);
+});
+
+it('does not provide lead config delta for non-lead agent', function () {
+    $this->actingAs($this->user);
+
+    $page = Livewire::test(\App\Filament\Pages\AgentSetup::class, ['agent' => $this->agent]);
+
+    expect($page->viewData('leadConfigDelta'))->toBeNull();
+    expect($page->viewData('leadExampleConfig'))->toBeNull();
+});
+
+it('hides step 6 cron config for lead agent', function () {
+    $this->agent->update(['is_lead' => true]);
+    $this->agent->refresh();
+
+    $this->actingAs($this->user);
+
+    Livewire::test(\App\Filament\Pages\AgentSetup::class, ['agent' => $this->agent])
+        ->assertDontSee('Configure Heartbeat Cron');
+});
+
+it('shows step 6 cron config for non-lead agent', function () {
+    $this->actingAs($this->user);
+
+    Livewire::test(\App\Filament\Pages\AgentSetup::class, ['agent' => $this->agent])
+        ->assertSee('Configure Heartbeat Cron');
+});

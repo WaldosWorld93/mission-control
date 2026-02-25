@@ -74,40 +74,117 @@
             </div>
         </section>
 
-        {{-- Step 2: Add Agent to OpenClaw Gateway --}}
+        {{-- Step 2: Gateway Configuration --}}
         <section>
             <div class="flex items-center gap-3 mb-4">
                 <div
                     class="flex h-8 w-8 items-center justify-center rounded-full text-sm font-bold"
                     style="background-color: #e0e7ff; color: #4f46e5;"
                 >2</div>
-                <h3 class="text-base font-semibold text-gray-900 dark:text-white">Add Agent to OpenClaw Gateway</h3>
+                <h3 class="text-base font-semibold text-gray-900 dark:text-white">
+                    {{ $agent->is_lead ? 'Update Your Main Agent Configuration' : 'Add Agent to OpenClaw Gateway' }}
+                </h3>
             </div>
             <div class="rounded-xl border border-gray-200 bg-white dark:border-gray-700 dark:bg-gray-800 overflow-hidden" style="margin-left: 44px;">
-                {{-- Tabs --}}
-                <div class="flex border-b border-gray-200 dark:border-gray-700">
-                    <button
-                        wire:click="setSkillTab('ask')"
-                        class="flex-1 px-4 py-3 text-sm font-medium transition-colors text-gray-500 hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-300"
-                        @if ($skillTab === 'ask') style="color: #4f46e5; border-bottom: 2px solid #4f46e5;" @endif
-                    >
-                        Option A: Ask Your Agent
-                    </button>
-                    <button
-                        wire:click="setSkillTab('manual')"
-                        class="flex-1 px-4 py-3 text-sm font-medium transition-colors text-gray-500 hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-300"
-                        @if ($skillTab === 'manual') style="color: #4f46e5; border-bottom: 2px solid #4f46e5;" @endif
-                    >
-                        Option B: Manual Setup
-                    </button>
-                </div>
-
-                <div style="padding: 20px 32px;">
-                    @if ($skillTab === 'ask')
-                        <p class="mb-3 text-sm text-gray-600 dark:text-gray-300">
-                            Paste this into a chat with your {{ $leadAgent ? 'main agent (' : '' }}<strong>{{ $leadAgent ? $leadAgent->name : $agent->name }}</strong>{{ $leadAgent ? ')' : ' agent' }}:
+                @if ($agent->is_lead)
+                    {{-- Lead agent: update existing config --}}
+                    <div style="padding: 16px 32px 0 32px;">
+                        <p class="text-sm text-gray-600 dark:text-gray-300">
+                            Your main agent is already running — you're chatting with it right now. We just need to add Mission Control's workspace files, tools, and heartbeat cron to its existing configuration.
                         </p>
-                        <x-code-block>Add a new agent entry to the openclaw.json configuration at ~/.openclaw/openclaw.json.
+                    </div>
+
+                    {{-- Tabs --}}
+                    <div class="flex border-b border-gray-200 dark:border-gray-700 mt-4">
+                        <button
+                            wire:click="setSkillTab('ask')"
+                            class="flex-1 px-4 py-3 text-sm font-medium transition-colors text-gray-500 hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-300"
+                            @if ($skillTab === 'ask') style="color: #4f46e5; border-bottom: 2px solid #4f46e5;" @endif
+                        >
+                            Option A: Ask Your Agent
+                        </button>
+                        <button
+                            wire:click="setSkillTab('manual')"
+                            class="flex-1 px-4 py-3 text-sm font-medium transition-colors text-gray-500 hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-300"
+                            @if ($skillTab === 'manual') style="color: #4f46e5; border-bottom: 2px solid #4f46e5;" @endif
+                        >
+                            Option B: Manual Setup
+                        </button>
+                    </div>
+
+                    <div style="padding: 20px 32px;">
+                        @if ($skillTab === 'ask')
+                            <p class="mb-3 text-sm text-gray-600 dark:text-gray-300">
+                                Paste this into a chat with your <strong>{{ $agent->name }}</strong> agent:
+                            </p>
+                            <x-code-block>Update your own configuration in ~/.openclaw/openclaw.json. Make these changes to your existing agent entry (the one with "default": true):
+
+1. Make sure your workspace is set to: "~/.openclaw/workspace"
+
+2. Add subagent permissions so you can delegate to other agents:
+   "subagents": { "allowAgents": ["*"] }
+
+3. Add the Mission Control heartbeat cron to your "crons" array:
+{{ $cronOnlyConfig }}
+
+Don't create a new agent entry — update your existing one. Keep all your current settings (model, channels, tools, etc.) and just add/merge these fields.</x-code-block>
+                        @else
+                            <p class="mb-3 text-sm text-gray-600 dark:text-gray-300">
+                                Open your <code class="rounded bg-stone-100 px-1.5 py-0.5 text-xs dark:bg-gray-900">~/.openclaw/openclaw.json</code> and find your existing main agent entry. It's the one with <code class="rounded bg-stone-100 px-1.5 py-0.5 text-xs dark:bg-gray-900">"default": true</code> (or the first entry if you only have one agent). Add or merge these fields into it:
+                            </p>
+
+                            <x-code-block language="json">// Add these to your existing main agent entry:
+{{ $leadConfigDelta }}</x-code-block>
+
+                            <div class="mt-4 rounded-lg p-3" style="background-color: #f0f9ff; border: 1px solid #bae6fd;">
+                                <p class="text-xs" style="color: #0369a1;">
+                                    If you already have a <code class="text-xs">crons</code> array, add the heartbeat entry to it — don't replace your existing crons. If you already have <code class="text-xs">subagents</code> configured, just make sure <code class="text-xs">allowAgents</code> includes <code class="text-xs">["*"]</code> or lists all your squad agent names.
+                                </p>
+                            </div>
+
+                            {{-- Collapsible: Example complete config --}}
+                            <div class="mt-4 rounded-lg border border-gray-200 dark:border-gray-700">
+                                <button
+                                    wire:click="toggleFile('leadExample')"
+                                    class="flex w-full items-center justify-between px-4 py-3 text-sm font-medium text-gray-700 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-700/50 transition-colors"
+                                >
+                                    <span>Example: complete main agent config after changes</span>
+                                    <x-heroicon-o-chevron-down class="h-4 w-4 transition-transform {{ $expandedFile === 'leadExample' ? 'rotate-180' : '' }}" />
+                                </button>
+                                @if ($expandedFile === 'leadExample')
+                                    <div class="border-t border-gray-200 dark:border-gray-700 p-4">
+                                        <x-code-block language="json" maxHeight="300px">{{ $leadExampleConfig }}</x-code-block>
+                                    </div>
+                                @endif
+                            </div>
+                        @endif
+                    </div>
+                @else
+                    {{-- Non-lead agent: add new entry --}}
+                    {{-- Tabs --}}
+                    <div class="flex border-b border-gray-200 dark:border-gray-700">
+                        <button
+                            wire:click="setSkillTab('ask')"
+                            class="flex-1 px-4 py-3 text-sm font-medium transition-colors text-gray-500 hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-300"
+                            @if ($skillTab === 'ask') style="color: #4f46e5; border-bottom: 2px solid #4f46e5;" @endif
+                        >
+                            Option A: Ask Your Agent
+                        </button>
+                        <button
+                            wire:click="setSkillTab('manual')"
+                            class="flex-1 px-4 py-3 text-sm font-medium transition-colors text-gray-500 hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-300"
+                            @if ($skillTab === 'manual') style="color: #4f46e5; border-bottom: 2px solid #4f46e5;" @endif
+                        >
+                            Option B: Manual Setup
+                        </button>
+                    </div>
+
+                    <div style="padding: 20px 32px;">
+                        @if ($skillTab === 'ask')
+                            <p class="mb-3 text-sm text-gray-600 dark:text-gray-300">
+                                Paste this into a chat with your {{ $leadAgent ? 'main agent (' : '' }}<strong>{{ $leadAgent ? $leadAgent->name : $agent->name }}</strong>{{ $leadAgent ? ')' : ' agent' }}:
+                            </p>
+                            <x-code-block>Add a new agent entry to the openclaw.json configuration at ~/.openclaw/openclaw.json.
 
 Add this entry to the "agents" array (create the array if it doesn't exist):
 
@@ -116,38 +193,39 @@ Add this entry to the "agents" array (create the array if it doesn't exist):
 The "tools" object controls which tools the agent has access to. The "profile" sets the base set of tools, and "allow"/"deny" can override specific tool groups.
 
 Don't create a new file — add this to the existing openclaw.json. If there are already other agents in the array, add this one alongside them.</x-code-block>
-                    @else
-                        <p class="mb-3 text-sm text-gray-600 dark:text-gray-300">
-                            Add this agent configuration to the <code class="rounded bg-stone-100 px-1.5 py-0.5 text-xs dark:bg-gray-900">agents</code> array in your <code class="rounded bg-stone-100 px-1.5 py-0.5 text-xs dark:bg-gray-900">openclaw.json</code>:
-                        </p>
+                        @else
+                            <p class="mb-3 text-sm text-gray-600 dark:text-gray-300">
+                                Add this agent configuration to the <code class="rounded bg-stone-100 px-1.5 py-0.5 text-xs dark:bg-gray-900">agents</code> array in your <code class="rounded bg-stone-100 px-1.5 py-0.5 text-xs dark:bg-gray-900">openclaw.json</code>:
+                            </p>
 
-                        <x-code-block language="json">{{ $openclawAgentConfig }}</x-code-block>
+                            <x-code-block language="json">{{ $openclawAgentConfig }}</x-code-block>
 
-                        <div class="mt-4 rounded-lg p-3" style="background-color: #f0f9ff; border: 1px solid #bae6fd;">
-                            <ul class="space-y-1 text-xs" style="color: #0369a1;">
-                                <li><strong>name:</strong> Uses the slug format (<code class="text-xs">{{ $agentSlug }}</code>) — must match across config and workspace.</li>
-                                <li><strong>workspace:</strong> Points to <code class="text-xs">{{ $workspacePath }}</code> — we'll create this directory in Step 3.</li>
-                                <li>If you already have agents configured, add this entry to the existing <code class="text-xs">agents</code> array.</li>
-                            </ul>
-                        </div>
+                            <div class="mt-4 rounded-lg p-3" style="background-color: #f0f9ff; border: 1px solid #bae6fd;">
+                                <ul class="space-y-1 text-xs" style="color: #0369a1;">
+                                    <li><strong>name:</strong> Uses the slug format (<code class="text-xs">{{ $agentSlug }}</code>) — must match across config and workspace.</li>
+                                    <li><strong>workspace:</strong> Points to <code class="text-xs">{{ $workspacePath }}</code> — we'll create this directory in Step 3.</li>
+                                    <li>If you already have agents configured, add this entry to the existing <code class="text-xs">agents</code> array.</li>
+                                </ul>
+                            </div>
 
-                        {{-- Collapsible: Full config --}}
-                        <div class="mt-4 rounded-lg border border-gray-200 dark:border-gray-700">
-                            <button
-                                wire:click="toggleFile('fullConfig')"
-                                class="flex w-full items-center justify-between px-4 py-3 text-sm font-medium text-gray-700 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-700/50 transition-colors"
-                            >
-                                <span>View full openclaw.json with all squad agents</span>
-                                <x-heroicon-o-chevron-down class="h-4 w-4 transition-transform {{ $expandedFile === 'fullConfig' ? 'rotate-180' : '' }}" />
-                            </button>
-                            @if ($expandedFile === 'fullConfig')
-                                <div class="border-t border-gray-200 dark:border-gray-700 p-4">
-                                    <x-code-block language="json" maxHeight="300px">{{ $openclawFullConfig }}</x-code-block>
-                                </div>
-                            @endif
-                        </div>
-                    @endif
-                </div>
+                            {{-- Collapsible: Full config --}}
+                            <div class="mt-4 rounded-lg border border-gray-200 dark:border-gray-700">
+                                <button
+                                    wire:click="toggleFile('fullConfig')"
+                                    class="flex w-full items-center justify-between px-4 py-3 text-sm font-medium text-gray-700 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-700/50 transition-colors"
+                                >
+                                    <span>View full openclaw.json with all squad agents</span>
+                                    <x-heroicon-o-chevron-down class="h-4 w-4 transition-transform {{ $expandedFile === 'fullConfig' ? 'rotate-180' : '' }}" />
+                                </button>
+                                @if ($expandedFile === 'fullConfig')
+                                    <div class="border-t border-gray-200 dark:border-gray-700 p-4">
+                                        <x-code-block language="json" maxHeight="300px">{{ $openclawFullConfig }}</x-code-block>
+                                    </div>
+                                @endif
+                            </div>
+                        @endif
+                    </div>
+                @endif
             </div>
         </section>
 
@@ -564,7 +642,8 @@ Don't overwrite the file — append to it. Also make sure MC_API_URL={{ $apiUrl 
             </div>
         </section>
 
-        {{-- Step 6: Cron Configuration --}}
+        {{-- Step 6: Cron Configuration (skip for lead — cron was included in Step 2) --}}
+        @if (! $agent->is_lead)
         <section>
             <div class="flex items-center gap-3 mb-4">
                 <div
@@ -656,6 +735,7 @@ Add the crons array to the existing agent entry — don't create a new agent or 
                 </div>
             </div>
         </section>
+        @endif
 
         {{-- Step 7: SOUL.md --}}
         <section>
