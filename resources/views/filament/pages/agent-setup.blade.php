@@ -509,13 +509,6 @@ echo 'MC_API_URL={{ $apiUrl }}' >> ~/.openclaw/.env</x-code-block>
                         Workspace .env (Recommended)
                     </button>
                     <button
-                        wire:click="setEnvTab('json')"
-                        class="flex-1 px-3 py-3 text-xs font-medium transition-colors text-gray-500 hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-300"
-                        @if ($envTab === 'json') style="color: #4f46e5; border-bottom: 2px solid #4f46e5;" @endif
-                    >
-                        openclaw.json env
-                    </button>
-                    <button
                         wire:click="setEnvTab('agent')"
                         class="flex-1 px-3 py-3 text-xs font-medium transition-colors text-gray-500 hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-300"
                         @if ($envTab === 'agent') style="color: #4f46e5; border-bottom: 2px solid #4f46e5;" @endif
@@ -530,16 +523,6 @@ echo 'MC_API_URL={{ $apiUrl }}' >> ~/.openclaw/.env</x-code-block>
                         <p class="mt-3 text-xs text-gray-500 dark:text-gray-400">
                             This creates (or appends to) a <code class="rounded bg-stone-100 px-1.5 py-0.5 text-xs dark:bg-gray-900">.env</code> file in <code class="rounded bg-stone-100 px-1.5 py-0.5 text-xs dark:bg-gray-900">{{ $workspacePath }}/</code>. When {{ $agent->name }} runs, it loads this file automatically because the workspace is its working directory.
                         </p>
-
-                    @elseif ($envTab === 'json')
-                        <div class="rounded-lg p-4" style="background-color: #f0f9ff; border: 1px solid #bae6fd;">
-                            <div class="flex items-start gap-2">
-                                <x-heroicon-o-information-circle class="h-5 w-5 flex-shrink-0 mt-0.5" style="color: #0369a1;" />
-                                <p class="text-sm" style="color: #0369a1;">
-                                    OpenClaw's <code class="rounded bg-white px-1.5 py-0.5 text-xs" style="border: 1px solid #bae6fd;">env</code> block in <code class="rounded bg-white px-1.5 py-0.5 text-xs" style="border: 1px solid #bae6fd;">openclaw.json</code> is global — it doesn't support per-agent environment variables. Use the Workspace .env tab or the Ask Your Agent tab instead.
-                                </p>
-                            </div>
-                        </div>
 
                     @elseif ($envTab === 'agent')
                         <p class="mb-3 text-sm text-gray-600 dark:text-gray-300">
