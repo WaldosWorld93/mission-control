@@ -659,25 +659,70 @@ Add the crons array to the existing agent entry — don't create a new agent or 
                 >7</div>
                 <h3 class="text-base font-semibold text-gray-900 dark:text-white">Set Up Agent Identity (SOUL.md)</h3>
             </div>
-            <div class="rounded-xl border border-gray-200 bg-white dark:border-gray-700 dark:bg-gray-800 space-y-4" style="margin-left: 44px; padding: 20px 32px;">
+            <div class="rounded-xl border border-gray-200 bg-white dark:border-gray-700 dark:bg-gray-800 overflow-hidden" style="margin-left: 44px;">
                 @if ($agent->soul_md)
-                    <div class="flex items-center justify-between">
+                    {{-- Edit button bar --}}
+                    <div class="flex items-center justify-between" style="padding: 16px 32px 0 32px;">
                         <p class="text-sm text-gray-600 dark:text-gray-300">
-                            Copy this SOUL.md to your agent's workspace at <code class="rounded bg-stone-100 px-1.5 py-0.5 text-xs dark:bg-gray-900">{{ $workspacePath }}/SOUL.md</code>.
-                            It will sync automatically on each heartbeat.
+                            Save this SOUL.md to your agent's workspace. Changes made in the dashboard will sync to your agent on the next heartbeat.
                         </p>
                         <a href="{{ \App\Filament\Resources\AgentResource::getUrl('edit', ['record' => $agent]) }}" class="flex-shrink-0 ml-4 inline-flex items-center gap-1.5 rounded-lg px-3 py-1.5 text-xs font-medium transition-colors" style="color: #4f46e5; border: 1px solid #c7d2fe;">
                             <x-heroicon-o-pencil-square class="h-3.5 w-3.5" />
                             Edit
                         </a>
                     </div>
-                    <div class="text-sm font-medium text-gray-700 dark:text-gray-300">SOUL.md for {{ $agent->name }}</div>
-                    <x-code-block language="markdown" maxHeight="300px">{{ $agent->soul_md }}</x-code-block>
+
+                    {{-- Tabs --}}
+                    <div class="flex border-b border-gray-200 dark:border-gray-700 mt-4">
+                        <button
+                            wire:click="setSkillTab('ask')"
+                            class="flex-1 px-4 py-3 text-sm font-medium transition-colors text-gray-500 hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-300"
+                            @if ($skillTab === 'ask') style="color: #4f46e5; border-bottom: 2px solid #4f46e5;" @endif
+                        >
+                            Option A: Ask Your Agent
+                        </button>
+                        <button
+                            wire:click="setSkillTab('manual')"
+                            class="flex-1 px-4 py-3 text-sm font-medium transition-colors text-gray-500 hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-300"
+                            @if ($skillTab === 'manual') style="color: #4f46e5; border-bottom: 2px solid #4f46e5;" @endif
+                        >
+                            Option B: Manual Setup
+                        </button>
+                    </div>
+
+                    <div style="padding: 20px 32px;">
+                        @if ($skillTab === 'ask')
+                            <p class="mb-3 text-sm text-gray-600 dark:text-gray-300">
+                                Paste this into a chat with your <strong>{{ $agent->name }}</strong> agent:
+                            </p>
+                            <x-code-block>Save this as your SOUL.md file at {{ $workspacePath }}/SOUL.md:
+
+{{ $agent->soul_md }}</x-code-block>
+                        @else
+                            <p class="mb-3 text-sm text-gray-600 dark:text-gray-300">
+                                Create the SOUL.md file in your agent's workspace:
+                            </p>
+                            <x-code-block language="bash">cat > {{ $workspacePath }}/SOUL.md << 'SOUL_EOF'
+{{ $agent->soul_md }}
+SOUL_EOF</x-code-block>
+                            <p class="mt-3 text-xs text-gray-500 dark:text-gray-400">
+                                This creates (or overwrites) the SOUL.md file at <code class="rounded bg-stone-100 px-1.5 py-0.5 text-xs dark:bg-gray-900">{{ $workspacePath }}/SOUL.md</code>. To edit it later, open the file in any text editor or update it from the Mission Control dashboard using the Edit button above.
+                            </p>
+                        @endif
+                    </div>
+
+                    {{-- SOUL.md preview --}}
+                    <div style="padding: 0 32px 20px 32px;">
+                        <div class="text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">SOUL.md for {{ $agent->name }}</div>
+                        <x-code-block language="markdown" maxHeight="300px">{{ $agent->soul_md }}</x-code-block>
+                    </div>
                 @else
-                    <p class="text-sm text-gray-500 dark:text-gray-400">
-                        No SOUL.md configured yet. You can add one in the
-                        <a href="{{ \App\Filament\Resources\AgentResource::getUrl('edit', ['record' => $agent]) }}" class="font-medium underline" style="color: #4f46e5;">agent settings</a>.
-                    </p>
+                    <div style="padding: 20px 32px;">
+                        <p class="text-sm text-gray-500 dark:text-gray-400">
+                            No SOUL.md configured yet. You can add one in the
+                            <a href="{{ \App\Filament\Resources\AgentResource::getUrl('edit', ['record' => $agent]) }}" class="font-medium underline" style="color: #4f46e5;">agent settings</a>.
+                        </p>
+                    </div>
                 @endif
             </div>
         </section>
