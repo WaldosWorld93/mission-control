@@ -128,7 +128,7 @@ class AgentSetup extends Page
             'tasksSkillMd' => $this->tasksSkillMd($apiUrl),
             'cronConfigInContext' => $this->cronConfigInContext($cronExpr, $heartbeatModel),
             'cronOnlyConfig' => $this->cronOnlyConfig($cronExpr, $heartbeatModel),
-            'curlCommand' => $this->curlCommand($apiUrl),
+            'curlCommand' => $this->curlCommand(),
         ];
     }
 
@@ -983,15 +983,13 @@ Response:
 MD;
     }
 
-    private function curlCommand(string $apiUrl): string
+    private function curlCommand(): string
     {
-        $token = $this->plainToken ?? 'YOUR_TOKEN_HERE';
-
-        return <<<BASH
-curl -s -X POST "{$apiUrl}/heartbeat" \\
-  -H "Authorization: Bearer {$token}" \\
-  -H "Content-Type: application/json" \\
-  -H "Accept: application/json" \\
+        return <<<'BASH'
+curl -s -X POST "$MC_API_URL/heartbeat" \
+  -H "Authorization: Bearer $MC_AGENT_TOKEN" \
+  -H "Content-Type: application/json" \
+  -H "Accept: application/json" \
   -d '{"status": "idle"}' | python3 -m json.tool
 BASH;
     }

@@ -734,11 +734,9 @@ Add the crons array to the existing agent entry — don't create a new agent or 
 
                         <x-code-block>{{ $curlCommand }}</x-code-block>
 
-                        @if (! $plainToken)
-                            <p class="mt-3 text-xs" style="color: #d97706;">
-                                <strong>Note:</strong> Replace <code class="rounded px-1 py-0.5 text-xs" style="background-color: #fef3c7;">YOUR_TOKEN_HERE</code> with the token from Step 5.
-                            </p>
-                        @endif
+                        <p class="mt-3 text-sm text-gray-600 dark:text-gray-300">
+                            This uses the <code class="rounded bg-stone-100 px-1.5 py-0.5 text-xs dark:bg-gray-900">MC_API_URL</code> and <code class="rounded bg-stone-100 px-1.5 py-0.5 text-xs dark:bg-gray-900">MC_AGENT_TOKEN</code> environment variables you configured in Step 5. If you get an "unauthorized" error or empty variable, your env vars aren't loaded — run <code class="rounded bg-stone-100 px-1.5 py-0.5 text-xs dark:bg-gray-900">source ~/.zshrc</code> (or <code class="rounded bg-stone-100 px-1.5 py-0.5 text-xs dark:bg-gray-900">source ~/.bashrc</code>) first, or check your <code class="rounded bg-stone-100 px-1.5 py-0.5 text-xs dark:bg-gray-900">~/.openclaw/.env</code> file.
+                        </p>
 
                         <p class="mt-3 text-xs text-gray-500 dark:text-gray-400">
                             This confirms the API URL and token are correct, but doesn't verify that your agent's skills and cron are properly configured. Use Option A for a full end-to-end test.
