@@ -46,17 +46,19 @@ it('shows configure agent workspace files section', function () {
 });
 
 it('shows environment variables section with api url', function () {
-    $this->actingAs($this->user)
-        ->get("/agents/{$this->agent->id}/setup")
+    $this->actingAs($this->user);
+
+    Livewire::test(\App\Filament\Pages\AgentSetup::class, ['agent' => $this->agent])
         ->assertSeeText('Environment Variables')
-        ->assertSeeText('MC_API_URL');
+        ->assertSee('MC_API_URL');
 });
 
 it('shows cron configuration section', function () {
-    $this->actingAs($this->user)
-        ->get("/agents/{$this->agent->id}/setup")
-        ->assertSeeText('Configure Heartbeat Cron')
-        ->assertSeeText('Mission Control Heartbeat');
+    $this->actingAs($this->user);
+
+    Livewire::test(\App\Filament\Pages\AgentSetup::class, ['agent' => $this->agent])
+        ->assertSee('Configure Heartbeat Cron')
+        ->assertSee('Mission Control Heartbeat');
 });
 
 it('shows test connection section with curl command', function () {
@@ -114,13 +116,14 @@ it('can regenerate the agent token', function () {
 
 it('shows both env vars in one block when token is available', function () {
     $plainToken = 'test-token-abc123';
-    session(['deployed_tokens' => [['name' => 'Scout', 'token' => $plainToken]]]);
+    session(["agent_token_{$this->agent->id}" => $plainToken]);
 
-    $this->actingAs($this->user)
-        ->get("/agents/{$this->agent->id}/setup")
-        ->assertSeeText('MC_API_URL')
-        ->assertSeeText('MC_AGENT_TOKEN')
-        ->assertSeeText($plainToken);
+    $this->actingAs($this->user);
+
+    Livewire::test(\App\Filament\Pages\AgentSetup::class, ['agent' => $this->agent])
+        ->assertSee('MC_API_URL')
+        ->assertSee('MC_AGENT_TOKEN')
+        ->assertSee($plainToken);
 });
 
 it('shows skill installation section', function () {

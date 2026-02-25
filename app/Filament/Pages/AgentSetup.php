@@ -30,6 +30,8 @@ class AgentSetup extends Page
 
     public bool $tokenIsNew = false;
 
+    public string $envTab = 'dotenv';
+
     public function mount(Agent $agent): void
     {
         $this->agent = $agent;
@@ -69,6 +71,11 @@ class AgentSetup extends Page
     public function setSkillTab(string $tab): void
     {
         $this->skillTab = $tab;
+    }
+
+    public function setEnvTab(string $tab): void
+    {
+        $this->envTab = $tab;
     }
 
     public function toggleSkill(string $skill): void
