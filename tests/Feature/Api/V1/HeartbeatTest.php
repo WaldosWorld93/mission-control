@@ -2,7 +2,6 @@
 
 use App\Enums\AgentStatus;
 use App\Enums\AttemptStatus;
-use App\Enums\TaskStatus;
 use App\Models\Agent;
 use App\Models\Project;
 use App\Models\Task;
@@ -223,6 +222,39 @@ it('logs heartbeat record', function (): void {
     ], agentHeaders($this->token));
 
     expect($this->agent->heartbeats()->count())->toBe(1);
+});
+
+it('returns correct soul_sync for each agent in multi-agent team', function (): void {
+    // Set up the first agent (from beforeEach) with soul
+    $this->agent->update([
+        'soul_md' => '# Research Lead Soul',
+        'soul_hash' => hash('sha256', '# Research Lead Soul'),
+    ]);
+
+    // Create a second agent with different soul
+    [$agent2, $token2] = createAgentWithToken($this->team);
+    $agent2->update([
+        'soul_md' => '# Primary Researcher Soul',
+        'soul_hash' => hash('sha256', '# Primary Researcher Soul'),
+    ]);
+
+    $staleHash = str_repeat('a', 64);
+
+    // Agent 1 heartbeat should return Agent 1's soul
+    $response1 = $this->postJson('/api/v1/heartbeat', [
+        'status' => 'online',
+        'soul_hash' => $staleHash,
+    ], agentHeaders($this->token));
+
+    expect($response1->json('soul_sync.soul_md'))->toBe('# Research Lead Soul');
+
+    // Agent 2 heartbeat should return Agent 2's soul
+    $response2 = $this->postJson('/api/v1/heartbeat', [
+        'status' => 'online',
+        'soul_hash' => $staleHash,
+    ], agentHeaders($token2));
+
+    expect($response2->json('soul_sync.soul_md'))->toBe('# Primary Researcher Soul');
 });
 
 it('validates soul_hash must be 64 characters', function (): void {

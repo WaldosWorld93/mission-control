@@ -27,11 +27,9 @@ function createTeam(array $attributes = []): Team
  */
 function createAgentWithToken(Team $team): array
 {
-    $plainToken = str()->random(40);
-    $agent = Agent::factory()->create([
-        'team_id' => $team->id,
-        'api_token' => hash('sha256', $plainToken),
-    ]);
+    $agent = Agent::factory()->make(['team_id' => $team->id]);
+    $plainToken = $agent->generateApiToken();
+    $agent->save();
 
     return [$agent, $plainToken];
 }

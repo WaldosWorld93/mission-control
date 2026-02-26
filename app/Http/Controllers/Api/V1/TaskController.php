@@ -21,13 +21,14 @@ use App\Models\Task;
 use App\Services\MentionParser;
 use App\StateMachines\TaskStateMachine;
 use Illuminate\Http\JsonResponse;
+use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 
 class TaskController extends Controller
 {
     public function index(ListTasksRequest $request): JsonResponse
     {
-        $agent = app('agent');
+        $agent = $request->attributes->get('agent');
 
         $query = Task::query()
             ->where('status', '!=', TaskStatus::Blocked);
@@ -53,7 +54,7 @@ class TaskController extends Controller
 
     public function store(CreateTaskRequest $request): JsonResponse
     {
-        $agent = app('agent');
+        $agent = $request->attributes->get('agent');
         $validated = $request->validated();
 
         // Validate parent task depth
@@ -174,7 +175,7 @@ class TaskController extends Controller
 
     public function update(UpdateTaskRequest $request, Task $task): JsonResponse
     {
-        $agent = app('agent');
+        $agent = $request->attributes->get('agent');
         $validated = $request->validated();
         $newStatus = null;
         $oldStatus = $task->status;
@@ -267,9 +268,9 @@ class TaskController extends Controller
         return response()->json(['data' => $task->fresh()]);
     }
 
-    public function claim(Task $task): JsonResponse
+    public function claim(Request $request, Task $task): JsonResponse
     {
-        $agent = app('agent');
+        $agent = $request->attributes->get('agent');
 
         $affected = DB::table('tasks')
             ->where('id', $task->id)

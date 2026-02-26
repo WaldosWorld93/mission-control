@@ -12,6 +12,7 @@ use App\Models\Task;
 use App\Models\TaskArtifact;
 use App\Services\ArtifactMetadataExtractor;
 use Illuminate\Http\JsonResponse;
+use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Storage;
 
@@ -23,7 +24,7 @@ class ArtifactController extends Controller
 
     public function store(CreateArtifactRequest $request, Task $task): JsonResponse
     {
-        $agent = app('agent');
+        $agent = $request->attributes->get('agent');
         $validated = $request->validated();
         $disk = Storage::disk(config('filesystems.artifact_disk'));
 
@@ -138,7 +139,7 @@ class ArtifactController extends Controller
         return response()->json(['data' => $artifacts]);
     }
 
-    public function confirm(TaskArtifact $artifact): JsonResponse
+    public function confirm(Request $request, TaskArtifact $artifact): JsonResponse
     {
         if ($artifact->confirmed_at) {
             return response()->json(['message' => 'Artifact already confirmed.'], 409);
@@ -168,7 +169,7 @@ class ArtifactController extends Controller
         ]);
 
         $artifact->load('task');
-        $agent = app('agent');
+        $agent = $request->attributes->get('agent');
 
         ArtifactUploaded::dispatch(
             $artifact->task->team_id,
@@ -210,7 +211,7 @@ class ArtifactController extends Controller
         ]);
 
         $artifact->load('task');
-        $agent = app('agent');
+        $agent = $request->attributes->get('agent');
 
         ArtifactUploaded::dispatch(
             $artifact->task->team_id,

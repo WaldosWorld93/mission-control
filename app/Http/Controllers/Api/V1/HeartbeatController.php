@@ -20,7 +20,7 @@ class HeartbeatController extends Controller
 {
     public function store(HeartbeatRequest $request): JsonResponse
     {
-        $agent = app('agent');
+        $agent = $request->attributes->get('agent');
         $validated = $request->validated();
 
         // Process error / circuit breaker

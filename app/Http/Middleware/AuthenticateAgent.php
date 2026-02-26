@@ -37,6 +37,7 @@ class AuthenticateAgent
             ]);
         }
 
+        $request->attributes->set('agent', $agent);
         app()->instance('agent', $agent);
         $this->teamContext->set($agent->team);
 

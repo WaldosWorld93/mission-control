@@ -12,7 +12,7 @@ class ThreadController extends Controller
 {
     public function index(ListThreadsRequest $request): JsonResponse
     {
-        $agent = app('agent');
+        $agent = $request->attributes->get('agent');
         $projectIds = $agent->projects()->pluck('projects.id');
 
         $query = MessageThread::whereIn('project_id', $projectIds)

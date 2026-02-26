@@ -22,7 +22,7 @@ class MessageController extends Controller
 
     public function store(CreateMessageRequest $request): JsonResponse
     {
-        $agent = app('agent');
+        $agent = $request->attributes->get('agent');
         $validated = $request->validated();
 
         $message = DB::transaction(function () use ($agent, $validated) {
@@ -80,7 +80,7 @@ class MessageController extends Controller
 
     public function index(ListMessagesRequest $request): JsonResponse
     {
-        $agent = app('agent');
+        $agent = $request->attributes->get('agent');
         $query = Message::query()->with(['fromAgent:id,name', 'thread:id,subject,task_id']);
 
         if ($request->filled('thread_id')) {
