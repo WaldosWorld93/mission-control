@@ -107,6 +107,20 @@ class Agent extends Model
         return $query->where('is_lead', true);
     }
 
+    /**
+     * Generate a new API token, returning the plain-text value.
+     *
+     * The hashed token is saved to the model automatically.
+     */
+    public function generateApiToken(): string
+    {
+        $plainToken = Str::random(64);
+
+        $this->api_token = hash('sha256', $plainToken);
+
+        return $plainToken;
+    }
+
     public function getSlugAttribute(): string
     {
         return Str::slug($this->name);

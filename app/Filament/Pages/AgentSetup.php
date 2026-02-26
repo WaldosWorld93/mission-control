@@ -58,11 +58,9 @@ class AgentSetup extends Page
 
     public function regenerateToken(): void
     {
-        $this->plainToken = Str::random(64);
+        $this->plainToken = $this->agent->generateApiToken();
         $this->tokenIsNew = true;
-        $this->agent->update([
-            'api_token' => hash('sha256', $this->plainToken),
-        ]);
+        $this->agent->save();
 
         // Note: token is now in Livewire state ($this->plainToken) for the current page view.
         // No need to persist to session since the user is already on the setup page.

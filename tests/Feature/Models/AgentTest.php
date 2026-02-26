@@ -274,6 +274,28 @@ it('returns full tools profile as default for unknown roles', function () {
     expect($agent->getToolsConfig())->toBe(['profile' => 'full']);
 });
 
+it('generates a 64-char plain token and sets hashed api_token', function () {
+    $agent = Agent::factory()->create(['team_id' => $this->team->id]);
+
+    $plainToken = $agent->generateApiToken();
+
+    expect($plainToken)->toHaveLength(64)
+        ->and($agent->api_token)->toBe(hash('sha256', $plainToken));
+});
+
+it('generates unique tokens on successive calls', function () {
+    $agent = Agent::factory()->create(['team_id' => $this->team->id]);
+
+    $token1 = $agent->generateApiToken();
+    $hash1 = $agent->api_token;
+
+    $token2 = $agent->generateApiToken();
+    $hash2 = $agent->api_token;
+
+    expect($token1)->not->toBe($token2)
+        ->and($hash1)->not->toBe($hash2);
+});
+
 it('returns full tools profile when role is null', function () {
     $agent = Agent::factory()->create([
         'team_id' => $this->team->id,

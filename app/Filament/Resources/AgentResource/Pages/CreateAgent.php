@@ -4,7 +4,6 @@ namespace App\Filament\Resources\AgentResource\Pages;
 
 use App\Filament\Resources\AgentResource;
 use Filament\Resources\Pages\CreateRecord;
-use Illuminate\Support\Str;
 
 class CreateAgent extends CreateRecord
 {
@@ -14,8 +13,9 @@ class CreateAgent extends CreateRecord
 
     protected function mutateFormDataBeforeCreate(array $data): array
     {
-        $this->generatedToken = Str::random(64);
-        $data['api_token'] = hash('sha256', $this->generatedToken);
+        $tempAgent = new \App\Models\Agent;
+        $this->generatedToken = $tempAgent->generateApiToken();
+        $data['api_token'] = $tempAgent->api_token;
 
         return $data;
     }

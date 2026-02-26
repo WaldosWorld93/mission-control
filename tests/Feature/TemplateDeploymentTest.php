@@ -83,6 +83,22 @@ it('creates agents with hashed tokens', function () {
     });
 });
 
+it('creates agents with unique tokens', function () {
+    $template = SquadTemplate::where('name', 'Customer Support Squad')->first();
+
+    $this->actingAs($this->user);
+
+    Livewire::test(\App\Filament\Pages\TemplateGallery::class)
+        ->call('deploy', $template->id);
+
+    $tokens = Agent::withoutGlobalScopes()
+        ->where('team_id', $this->team->id)
+        ->pluck('api_token');
+
+    expect($tokens)->toHaveCount(4)
+        ->and($tokens->unique())->toHaveCount(4);
+});
+
 it('creates agents with soul_md from templates', function () {
     $template = SquadTemplate::where('name', 'Product Development Squad')->first();
 

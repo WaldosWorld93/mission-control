@@ -22,7 +22,7 @@ class AgentFactory extends Factory
             'description' => fake()->sentence(),
             'status' => AgentStatus::Offline,
             'is_lead' => false,
-            'api_token' => hash('sha256', Str::random(40)),
+            'api_token' => hash('sha256', Str::random(64)),
             'skills' => [],
             'metadata' => [],
             'consecutive_errors' => 0,

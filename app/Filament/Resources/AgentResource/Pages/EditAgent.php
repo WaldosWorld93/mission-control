@@ -6,7 +6,6 @@ use App\Filament\Resources\AgentResource;
 use Filament\Actions;
 use Filament\Notifications\Notification;
 use Filament\Resources\Pages\EditRecord;
-use Illuminate\Support\Str;
 
 class EditAgent extends EditRecord
 {
@@ -23,8 +22,8 @@ class EditAgent extends EditRecord
                 ->modalHeading('Regenerate API Token')
                 ->modalDescription('This will invalidate the current token. The agent will need to be updated with the new token.')
                 ->action(function (): void {
-                    $token = Str::random(64);
-                    $this->record->update(['api_token' => hash('sha256', $token)]);
+                    $token = $this->record->generateApiToken();
+                    $this->record->save();
 
                     // Store token in session and redirect to setup page
                     session(["agent_token_{$this->record->id}" => $token]);

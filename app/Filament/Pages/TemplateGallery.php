@@ -83,9 +83,7 @@ class TemplateGallery extends Page
             ]);
 
             foreach ($template->agentTemplates as $agentTemplate) {
-                $plainToken = Str::random(40);
-
-                $agent = Agent::create([
+                $agent = new Agent([
                     'team_id' => $team->id,
                     'name' => $agentTemplate->name,
                     'role' => $agentTemplate->role,
@@ -97,11 +95,13 @@ class TemplateGallery extends Page
                     'skills' => $agentTemplate->default_skills ?? [],
                     'heartbeat_model' => $agentTemplate->heartbeat_model,
                     'work_model' => $agentTemplate->work_model,
-                    'api_token' => hash('sha256', $plainToken),
                     'metadata' => [],
                     'consecutive_errors' => 0,
                     'is_paused' => false,
                 ]);
+
+                $plainToken = $agent->generateApiToken();
+                $agent->save();
 
                 $project->agents()->attach($agent->id, [
                     'joined_at' => now(),

@@ -9,7 +9,6 @@ use Filament\Actions;
 use Filament\Forms;
 use Filament\Notifications\Notification;
 use Filament\Resources\Pages\ListRecords;
-use Illuminate\Support\Str;
 
 class ListAgents extends ListRecords
 {
@@ -57,9 +56,7 @@ class ListAgents extends ListRecords
                         return;
                     }
 
-                    $plainToken = Str::random(40);
-
-                    $agent = Agent::create([
+                    $agent = new Agent([
                         'team_id' => $team->id,
                         'name' => $template->name,
                         'role' => $template->role,
@@ -71,11 +68,13 @@ class ListAgents extends ListRecords
                         'skills' => $template->default_skills ?? [],
                         'heartbeat_model' => $template->heartbeat_model,
                         'work_model' => $template->work_model,
-                        'api_token' => hash('sha256', $plainToken),
                         'metadata' => [],
                         'consecutive_errors' => 0,
                         'is_paused' => false,
                     ]);
+
+                    $plainToken = $agent->generateApiToken();
+                    $agent->save();
 
                     session()->put('deployed_tokens', [[
                         'name' => $agent->name,
