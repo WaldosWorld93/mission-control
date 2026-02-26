@@ -90,7 +90,7 @@
                     {{-- Lead agent: update existing config --}}
                     <div style="padding: 16px 32px 0 32px;">
                         <p class="text-sm text-gray-600 dark:text-gray-300">
-                            Your main agent is already running — you're chatting with it right now. We just need to add Mission Control's workspace files, tools, and heartbeat cron to its existing configuration.
+                            Your main agent is already running — you're chatting with it right now. We just need to add Mission Control's workspace files, tools, and subagent permissions to its existing configuration.
                         </p>
                     </div>
 
@@ -124,9 +124,6 @@
 2. Add subagent permissions so you can delegate to other agents:
    "subagents": { "allowAgents": ["*"] }
 
-3. Add the Mission Control heartbeat cron to your "crons" array:
-{{ $cronOnlyConfig }}
-
 Don't create a new agent entry — update your existing one. Keep all your current settings (model, channels, tools, etc.) and just add/merge these fields.</x-code-block>
                         @else
                             <p class="mb-3 text-sm text-gray-600 dark:text-gray-300">
@@ -138,7 +135,7 @@ Don't create a new agent entry — update your existing one. Keep all your curre
 
                             <div class="mt-4 rounded-lg p-3" style="background-color: #f0f9ff; border: 1px solid #bae6fd;">
                                 <p class="text-xs" style="color: #0369a1;">
-                                    If you already have a <code class="text-xs">crons</code> array, add the heartbeat entry to it — don't replace your existing crons. If you already have <code class="text-xs">subagents</code> configured, just make sure <code class="text-xs">allowAgents</code> includes <code class="text-xs">["*"]</code> or lists all your squad agent names.
+                                    If you already have <code class="text-xs">subagents</code> configured, just make sure <code class="text-xs">allowAgents</code> includes <code class="text-xs">["*"]</code> or lists all your squad agent names. The heartbeat cron is configured separately in Step 6.
                                 </p>
                             </div>
 
@@ -642,8 +639,7 @@ Don't overwrite the file — append to it. Also make sure MC_API_URL={{ $apiUrl 
             </div>
         </section>
 
-        {{-- Step 6: Cron Configuration (skip for lead — cron was included in Step 2) --}}
-        @if (! $agent->is_lead)
+        {{-- Step 6: Cron Configuration --}}
         <section>
             <div class="flex items-center gap-3 mb-4">
                 <div
@@ -676,66 +672,34 @@ Don't overwrite the file — append to it. Also make sure MC_API_URL={{ $apiUrl 
                         <p class="mb-3 text-sm text-gray-600 dark:text-gray-300">
                             Paste this into a chat with your {{ $leadAgent ? 'main agent (' : '' }}<strong>{{ $leadAgent ? $leadAgent->name : $agent->name }}</strong>{{ $leadAgent ? ')' : ' agent' }}:
                         </p>
-                        <x-code-block>Add a heartbeat cron to the openclaw.json configuration at ~/.openclaw/openclaw.json.
+                        <x-code-block>Add a heartbeat cron job for {{ $agent->is_lead ? 'yourself' : 'the agent "' . $agentSlug . '"' }} using the OpenClaw CLI. Run this command:
 
-In the agent config for "{{ $agentSlug }}", add a "crons" array with this entry:
+{{ $cronCliCommand }}
 
-{{ $cronOnlyConfig }}
-
-Add the crons array to the existing agent entry — don't create a new agent or duplicate the config.</x-code-block>
+This creates a cron entry in ~/.openclaw/cron/jobs.json. Verify it was added by running: openclaw cron list</x-code-block>
                     @else
                         <p class="mb-4 text-sm text-gray-600 dark:text-gray-300">
                             The heartbeat is a cron job that makes your agent check in with Mission Control on a schedule.
                             It uses <strong>{{ str_replace('anthropic/', '', $heartbeatModel) }}</strong> (a cheap, fast model) so it costs almost nothing to run.
                         </p>
 
-                        {{-- Sub-section: If you added in Step 2 --}}
-                        <div class="mb-6">
-                            <h4 class="text-sm font-semibold text-gray-800 dark:text-gray-200 mb-2">If you added this agent in Step 2 (openclaw.json):</h4>
-                            <p class="text-sm text-gray-600 dark:text-gray-300 mb-3">
-                                The cron was already included in your agent config from Step 2 — you can skip this step.
-                                To verify, open <code class="rounded bg-stone-100 px-1.5 py-0.5 text-xs dark:bg-gray-900">~/.openclaw/openclaw.json</code> and check that your agent has a <code class="rounded bg-stone-100 px-1.5 py-0.5 text-xs dark:bg-gray-900">crons</code> array with a "Mission Control Heartbeat" entry.
+                        <p class="mb-3 text-sm text-gray-600 dark:text-gray-300">
+                            OpenClaw cron jobs are managed via the CLI and stored in <code class="rounded bg-stone-100 px-1.5 py-0.5 text-xs dark:bg-gray-900">~/.openclaw/cron/jobs.json</code> (separate from agent config). Run this command to add the heartbeat:
+                        </p>
+
+                        <x-code-block language="bash">{{ $cronCliCommand }}</x-code-block>
+
+                        <div class="mt-4 rounded-lg p-3" style="background-color: #f0f9ff; border: 1px solid #bae6fd;">
+                            <p class="text-xs" style="color: #0369a1;">
+                                <strong>Verify:</strong> Run <code class="text-xs">openclaw cron list</code> to confirm the job was added.
+                                Heartbeats use {{ str_replace('anthropic/', '', $heartbeatModel) }} to check for work.
+                                Actual tasks will use the agent's work model ({{ str_replace('anthropic/', '', $agent->work_model ?? 'default') }}).
                             </p>
-
-                            {{-- Collapsible: Verify cron config --}}
-                            <div class="rounded-lg border border-gray-200 dark:border-gray-700">
-                                <button
-                                    wire:click="toggleFile('cronVerify')"
-                                    class="flex w-full items-center justify-between px-4 py-3 text-sm font-medium text-gray-700 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-700/50 transition-colors"
-                                >
-                                    <span>View cron config to verify</span>
-                                    <x-heroicon-o-chevron-down class="h-4 w-4 transition-transform {{ $expandedFile === 'cronVerify' ? 'rotate-180' : '' }}" />
-                                </button>
-                                @if ($expandedFile === 'cronVerify')
-                                    <div class="border-t border-gray-200 dark:border-gray-700 p-4">
-                                        <x-code-block language="json" maxHeight="200px">{{ $cronOnlyConfig }}</x-code-block>
-                                    </div>
-                                @endif
-                            </div>
-                        </div>
-
-                        {{-- Sub-section: If you set up manually --}}
-                        <div>
-                            <h4 class="text-sm font-semibold text-gray-800 dark:text-gray-200 mb-2">If you set up this agent manually:</h4>
-                            <p class="mb-3 text-sm text-gray-600 dark:text-gray-300">
-                                Open <code class="rounded bg-stone-100 px-1.5 py-0.5 text-xs dark:bg-gray-900">~/.openclaw/openclaw.json</code>, find your agent entry by name, and add a <code class="rounded bg-stone-100 px-1.5 py-0.5 text-xs dark:bg-gray-900">crons</code> key to it:
-                            </p>
-
-                            <x-code-block language="json">{{ $cronConfigInContext }}</x-code-block>
-
-                            <div class="mt-3 rounded-lg p-3" style="background-color: #f0f9ff; border: 1px solid #bae6fd;">
-                                <p class="text-xs" style="color: #0369a1;">
-                                    <strong>Note:</strong> Add the <code class="text-xs">crons</code> key inside your existing agent object — don't create a new agent entry.
-                                    Heartbeats use {{ str_replace('anthropic/', '', $heartbeatModel) }} to check for work.
-                                    Actual tasks will use the agent's work model ({{ str_replace('anthropic/', '', $agent->work_model ?? 'default') }}).
-                                </p>
-                            </div>
                         </div>
                     @endif
                 </div>
             </div>
         </section>
-        @endif
 
         {{-- Step 7: SOUL.md --}}
         <section>

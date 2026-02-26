@@ -127,8 +127,8 @@ class AgentSetup extends Page
             'workspacePath' => $this->agent->workspace_path,
             'leadAgent' => $leadAgent,
             'leadNotReady' => $leadNotReady,
-            'leadConfigDelta' => $this->agent->is_lead ? $this->leadConfigDelta($cronExpr, $heartbeatModel) : null,
-            'leadExampleConfig' => $this->agent->is_lead ? $this->leadExampleConfig($cronExpr, $heartbeatModel) : null,
+            'leadConfigDelta' => $this->agent->is_lead ? $this->leadConfigDelta() : null,
+            'leadExampleConfig' => $this->agent->is_lead ? $this->leadExampleConfig() : null,
             'openclawAgentConfig' => $this->openclawAgentConfig(),
             'openclawFullConfig' => $this->openclawFullConfig(),
             'identityMd' => $this->identityMd(),
@@ -139,8 +139,7 @@ class AgentSetup extends Page
             'createAllFilesScript' => $this->createAllFilesScript(),
             'heartbeatSkillMd' => $this->heartbeatSkillMd($apiUrl),
             'tasksSkillMd' => $this->tasksSkillMd($apiUrl),
-            'cronConfigInContext' => $this->cronConfigInContext($cronExpr, $heartbeatModel),
-            'cronOnlyConfig' => $this->cronOnlyConfig($cronExpr, $heartbeatModel),
+            'cronCliCommand' => $this->cronCliCommand($cronExpr, $heartbeatModel),
             'curlCommand' => $this->curlCommand(),
         ];
     }
@@ -350,33 +349,18 @@ echo "Workspace files created in {$wp}"
 BASH;
     }
 
-    private function leadConfigDelta(string $cronExpr, string $heartbeatModel): string
+    private function leadConfigDelta(): string
     {
         $delta = [
             'subagents' => [
                 'allowAgents' => ['*'],
-            ],
-            'crons' => [
-                [
-                    'name' => 'Mission Control Heartbeat',
-                    'schedule' => [
-                        'kind' => 'cron',
-                        'expr' => $cronExpr,
-                    ],
-                    'sessionTarget' => 'isolated',
-                    'payload' => [
-                        'kind' => 'agentTurn',
-                        'model' => $heartbeatModel,
-                        'message' => 'Run the mission-control-heartbeat skill now. Sync with Mission Control, report your status, and check for pending work.',
-                    ],
-                ],
             ],
         ];
 
         return json_encode($delta, JSON_PRETTY_PRINT | JSON_UNESCAPED_SLASHES);
     }
 
-    private function leadExampleConfig(string $cronExpr, string $heartbeatModel): string
+    private function leadExampleConfig(): string
     {
         $config = [
             'name' => $this->agent->slug,
@@ -387,71 +371,24 @@ BASH;
             'subagents' => [
                 'allowAgents' => ['*'],
             ],
-            'crons' => [
-                [
-                    'name' => 'Mission Control Heartbeat',
-                    'schedule' => [
-                        'kind' => 'cron',
-                        'expr' => $cronExpr,
-                    ],
-                    'sessionTarget' => 'isolated',
-                    'payload' => [
-                        'kind' => 'agentTurn',
-                        'model' => $heartbeatModel,
-                        'message' => 'Run the mission-control-heartbeat skill now. Sync with Mission Control, report your status, and check for pending work.',
-                    ],
-                ],
-            ],
         ];
 
         return json_encode($config, JSON_PRETTY_PRINT | JSON_UNESCAPED_SLASHES);
     }
 
-    private function cronConfigInContext(string $cronExpr, string $heartbeatModel): string
+    private function cronCliCommand(string $cronExpr, string $heartbeatModel): string
     {
-        $config = [
-            'name' => $this->agent->slug,
-            'model' => $this->agent->work_model ?? 'anthropic/claude-sonnet-4',
-            'workspace' => $this->agent->workspace_path,
-            'crons' => [
-                [
-                    'name' => 'Mission Control Heartbeat',
-                    'schedule' => [
-                        'kind' => 'cron',
-                        'expr' => $cronExpr,
-                    ],
-                    'sessionTarget' => 'isolated',
-                    'payload' => [
-                        'kind' => 'agentTurn',
-                        'model' => $heartbeatModel,
-                        'message' => 'Run the mission-control-heartbeat skill now. Sync with Mission Control, report your status, and check for pending work.',
-                    ],
-                ],
-            ],
-        ];
+        $slug = $this->agent->slug;
 
-        return json_encode($config, JSON_PRETTY_PRINT | JSON_UNESCAPED_SLASHES);
-    }
-
-    private function cronOnlyConfig(string $cronExpr, string $heartbeatModel): string
-    {
-        $crons = [
-            [
-                'name' => 'Mission Control Heartbeat',
-                'schedule' => [
-                    'kind' => 'cron',
-                    'expr' => $cronExpr,
-                ],
-                'sessionTarget' => 'isolated',
-                'payload' => [
-                    'kind' => 'agentTurn',
-                    'model' => $heartbeatModel,
-                    'message' => 'Run the mission-control-heartbeat skill now. Sync with Mission Control, report your status, and check for pending work.',
-                ],
-            ],
-        ];
-
-        return json_encode($crons, JSON_PRETTY_PRINT | JSON_UNESCAPED_SLASHES);
+        return <<<BASH
+openclaw cron add \\
+  --name "mc-heartbeat-{$slug}" \\
+  --cron "{$cronExpr}" \\
+  --session isolated \\
+  --agent {$slug} \\
+  --model "{$heartbeatModel}" \\
+  --message "Run the mission-control-heartbeat skill now. Sync with Mission Control, report your status, and check for pending work."
+BASH;
     }
 
     private function heartbeatSkillMd(string $apiUrl): string

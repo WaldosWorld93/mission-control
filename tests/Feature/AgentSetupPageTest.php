@@ -58,7 +58,7 @@ it('shows cron configuration section', function () {
 
     Livewire::test(\App\Filament\Pages\AgentSetup::class, ['agent' => $this->agent])
         ->assertSee('Configure Heartbeat Cron')
-        ->assertSee('Mission Control Heartbeat');
+        ->assertSee('openclaw cron add');
 });
 
 it('shows test connection section with curl command', function () {
@@ -268,19 +268,18 @@ it('tasks skill includes 409 conflict handling for claim', function () {
     expect($tasksSkill)->toContain('Do not retry');
 });
 
-it('cron config in context has name and crons keys', function () {
+it('cron cli command contains agent slug and schedule', function () {
     $this->actingAs($this->user);
 
     $page = Livewire::test(\App\Filament\Pages\AgentSetup::class, ['agent' => $this->agent]);
 
-    $cronConfig = $page->viewData('cronConfigInContext');
-    $decoded = json_decode($cronConfig, true);
+    $cronCliCommand = $page->viewData('cronCliCommand');
 
-    expect($decoded)->toHaveKey('name');
-    expect($decoded)->toHaveKey('crons');
-    expect($decoded['crons'])->toBeArray();
-    expect($decoded['crons'][0])->toHaveKey('name', 'Mission Control Heartbeat');
-    expect($decoded['crons'][0]['payload']['message'])->toContain('Sync with Mission Control');
+    expect($cronCliCommand)->toContain('openclaw cron add')
+        ->and($cronCliCommand)->toContain('mc-heartbeat-scout')
+        ->and($cronCliCommand)->toContain('*/3 * * * *')
+        ->and($cronCliCommand)->toContain('--agent scout')
+        ->and($cronCliCommand)->toContain('mission-control-heartbeat');
 });
 
 it('generates correct slug for agent', function () {
@@ -514,7 +513,7 @@ it('provides lead config delta and example for lead agent', function () {
 
     $delta = json_decode($page->viewData('leadConfigDelta'), true);
     expect($delta)->toHaveKey('subagents');
-    expect($delta)->toHaveKey('crons');
+    expect($delta)->not->toHaveKey('crons');
     expect($delta['subagents']['allowAgents'])->toBe(['*']);
 });
 
@@ -527,19 +526,21 @@ it('does not provide lead config delta for non-lead agent', function () {
     expect($page->viewData('leadExampleConfig'))->toBeNull();
 });
 
-it('hides step 6 cron config for lead agent', function () {
+it('shows step 6 cron config for lead agent', function () {
     $this->agent->update(['is_lead' => true]);
     $this->agent->refresh();
 
     $this->actingAs($this->user);
 
     Livewire::test(\App\Filament\Pages\AgentSetup::class, ['agent' => $this->agent])
-        ->assertDontSee('Configure Heartbeat Cron');
+        ->assertSee('Configure Heartbeat Cron')
+        ->assertSee('openclaw cron add');
 });
 
 it('shows step 6 cron config for non-lead agent', function () {
     $this->actingAs($this->user);
 
     Livewire::test(\App\Filament\Pages\AgentSetup::class, ['agent' => $this->agent])
-        ->assertSee('Configure Heartbeat Cron');
+        ->assertSee('Configure Heartbeat Cron')
+        ->assertSee('openclaw cron add');
 });
