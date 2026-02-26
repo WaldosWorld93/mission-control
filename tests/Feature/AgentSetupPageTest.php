@@ -53,6 +53,29 @@ it('shows environment variables section with api url', function () {
         ->assertSee('MC_API_URL');
 });
 
+it('shows critical warning about token placement in step 5', function () {
+    $this->actingAs($this->user);
+
+    Livewire::test(\App\Filament\Pages\AgentSetup::class, ['agent' => $this->agent])
+        ->assertSee('MC_AGENT_TOKEN must ONLY exist in this agent')
+        ->assertSee('workspace .env file');
+});
+
+it('shows workspace-specific token path in step 5', function () {
+    $this->actingAs($this->user);
+
+    Livewire::test(\App\Filament\Pages\AgentSetup::class, ['agent' => $this->agent])
+        ->assertSee('~/.openclaw/workspace-scout/.env');
+});
+
+it('shows openclaw json env tab as not supported', function () {
+    $this->actingAs($this->user);
+
+    Livewire::test(\App\Filament\Pages\AgentSetup::class, ['agent' => $this->agent])
+        ->call('setEnvTab', 'json')
+        ->assertSee('Not supported for per-agent tokens');
+});
+
 it('shows cron configuration section', function () {
     $this->actingAs($this->user);
 

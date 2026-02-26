@@ -564,10 +564,23 @@ mkdir -p {{ $workspacePath }}/skills/mission-control-tasks</x-code-block>
                     @endif
                 </div>
 
+                {{-- Critical warning --}}
+                <div style="padding: 16px 32px 0 32px;">
+                    <div class="flex items-start gap-3" style="background-color: #fef2f2; border: 1px solid #ef4444; border-radius: 8px; padding: 12px 16px;">
+                        <x-heroicon-o-exclamation-circle class="h-5 w-5 flex-shrink-0 mt-0.5" style="color: #ef4444;" />
+                        <div>
+                            <p class="text-sm" style="color: #991b1b;"><strong>MC_AGENT_TOKEN must ONLY exist in this agent's workspace .env file.</strong></p>
+                            <p class="mt-1 text-xs" style="color: #991b1b;">
+                                Never put MC_AGENT_TOKEN in the global <code class="text-xs">~/.openclaw/.env</code> or your shell profile (<code class="text-xs">~/.zshrc</code>/<code class="text-xs">~/.bashrc</code>). The global file is loaded first and overrides workspace-specific tokens — every agent would authenticate as the same agent.
+                            </p>
+                        </div>
+                    </div>
+                </div>
+
                 {{-- Context --}}
                 <div style="padding: 16px 32px 0 32px;">
                     <p class="text-sm text-gray-600 dark:text-gray-300">
-                        Each agent needs its own API token. Since all your agents share the same OpenClaw gateway, we store tokens in each agent's workspace directory so they don't collide.
+                        Each agent needs its own API token. We store tokens in each agent's workspace directory so they don't collide.
                     </p>
                 </div>
 
@@ -578,9 +591,9 @@ mkdir -p {{ $workspacePath }}/skills/mission-control-tasks</x-code-block>
                         If you haven't already, set the Mission Control API URL in your global OpenClaw environment. This only needs to be done once — all agents share it.
                     </p>
                     <x-code-block language="bash"># Skip this if you've already set MC_API_URL for another agent
-echo 'MC_API_URL={{ $apiUrl }}' >> ~/.openclaw/.env</x-code-block>
+grep -q 'MC_API_URL' ~/.openclaw/.env 2>/dev/null || echo 'MC_API_URL={{ $apiUrl }}' >> ~/.openclaw/.env</x-code-block>
                     <p class="mt-2 text-xs text-gray-500 dark:text-gray-400">
-                        This goes in <code class="rounded bg-stone-100 px-1.5 py-0.5 text-xs dark:bg-gray-900">~/.openclaw/.env</code> which is loaded by all agents. If it's already there from setting up a previous agent, skip this.
+                        This goes in <code class="rounded bg-stone-100 px-1.5 py-0.5 text-xs dark:bg-gray-900">~/.openclaw/.env</code> which is loaded by all agents. The <code class="rounded bg-stone-100 px-1.5 py-0.5 text-xs dark:bg-gray-900">grep</code> check prevents duplicates if you run this more than once.
                     </p>
                 </div>
 
@@ -602,6 +615,13 @@ echo 'MC_API_URL={{ $apiUrl }}' >> ~/.openclaw/.env</x-code-block>
                         Workspace .env (Recommended)
                     </button>
                     <button
+                        wire:click="setEnvTab('json')"
+                        class="flex-1 px-3 py-3 text-xs font-medium transition-colors text-gray-500 hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-300"
+                        @if ($envTab === 'json') style="color: #4f46e5; border-bottom: 2px solid #4f46e5;" @endif
+                    >
+                        openclaw.json env
+                    </button>
+                    <button
                         wire:click="setEnvTab('agent')"
                         class="flex-1 px-3 py-3 text-xs font-medium transition-colors text-gray-500 hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-300"
                         @if ($envTab === 'agent') style="color: #4f46e5; border-bottom: 2px solid #4f46e5;" @endif
@@ -612,22 +632,58 @@ echo 'MC_API_URL={{ $apiUrl }}' >> ~/.openclaw/.env</x-code-block>
 
                 <div style="padding: 20px 32px;">
                     @if ($envTab === 'dotenv')
-                        <x-code-block language="bash">echo 'MC_AGENT_TOKEN={{ $tokenValue }}' >> {{ $workspacePath }}/.env</x-code-block>
+                        <x-code-block language="bash"># Set token for {{ $agent->name }} — removes old value first to prevent duplicates
+touch {{ $workspacePath }}/.env
+sed -i '' '/^MC_AGENT_TOKEN/d' {{ $workspacePath }}/.env
+echo 'MC_AGENT_TOKEN={{ $tokenValue }}' >> {{ $workspacePath }}/.env</x-code-block>
                         <p class="mt-3 text-xs text-gray-500 dark:text-gray-400">
-                            This creates (or appends to) a <code class="rounded bg-stone-100 px-1.5 py-0.5 text-xs dark:bg-gray-900">.env</code> file in <code class="rounded bg-stone-100 px-1.5 py-0.5 text-xs dark:bg-gray-900">{{ $workspacePath }}/</code>. When {{ $agent->name }} runs, it loads this file automatically because the workspace is its working directory.
+                            This safely updates the token in <code class="rounded bg-stone-100 px-1.5 py-0.5 text-xs dark:bg-gray-900">{{ $workspacePath }}/.env</code> — it removes any old token first, then adds the new one.
                         </p>
+
+                        {{-- Cleanup callout --}}
+                        <div class="mt-4 flex items-start gap-3" style="background-color: #fffbeb; border: 1px solid #f59e0b; border-radius: 8px; padding: 12px 16px;">
+                            <x-heroicon-o-exclamation-triangle class="h-5 w-5 flex-shrink-0 mt-0.5" style="color: #d97706;" />
+                            <div>
+                                <p class="text-sm font-medium" style="color: #92400e;">Cleanup: Remove any global MC_AGENT_TOKEN</p>
+                                <p class="mt-1 text-xs" style="color: #a16207;">
+                                    If you (or a previous setup) put MC_AGENT_TOKEN in the global .env or your shell profile, remove it now. Otherwise it overrides the workspace token.
+                                </p>
+                                <div class="mt-2">
+                                    <x-code-block language="bash"># Remove MC_AGENT_TOKEN from global .env (keep MC_API_URL and other vars)
+sed -i '' '/^MC_AGENT_TOKEN/d' ~/.openclaw/.env
+# Also check shell profiles
+sed -i '' '/MC_AGENT_TOKEN/d' ~/.zshrc 2>/dev/null
+sed -i '' '/MC_AGENT_TOKEN/d' ~/.bashrc 2>/dev/null</x-code-block>
+                                </div>
+                            </div>
+                        </div>
+
+                    @elseif ($envTab === 'json')
+                        <div class="rounded-lg p-4" style="background-color: #f0f9ff; border: 1px solid #bae6fd;">
+                            <div class="flex items-start gap-3">
+                                <x-heroicon-o-information-circle class="h-5 w-5 flex-shrink-0 mt-0.5" style="color: #0369a1;" />
+                                <div>
+                                    <p class="text-sm font-medium" style="color: #0c4a6e;">Not supported for per-agent tokens</p>
+                                    <p class="mt-1 text-xs" style="color: #0369a1;">
+                                        OpenClaw's <code class="text-xs">env</code> block in <code class="text-xs">openclaw.json</code> is global — it doesn't support per-agent environment variables. Use the <strong>Workspace .env</strong> tab or the <strong>Ask Your Agent</strong> tab instead.
+                                    </p>
+                                </div>
+                            </div>
+                        </div>
 
                     @elseif ($envTab === 'agent')
                         <p class="mb-3 text-sm text-gray-600 dark:text-gray-300">
                             Paste this into a chat with your {{ $leadAgent ? 'main agent (' : '' }}<strong>{{ $leadAgent ? $leadAgent->name : $agent->name }}</strong>{{ $leadAgent ? ')' : ' agent' }}:
                         </p>
-                        <x-code-block>Add the Mission Control token to the {{ $agent->name }} agent's workspace environment file.
+                        <x-code-block>Set up the Mission Control token for the {{ $agent->name }} agent.
 
-Append this line to {{ $workspacePath }}/.env (create the file if it doesn't exist):
+1. Remove any MC_AGENT_TOKEN line from ~/.openclaw/.env (that file should only have MC_API_URL)
+2. Remove any old MC_AGENT_TOKEN line from {{ $workspacePath }}/.env
+3. Add this line to {{ $workspacePath }}/.env:
+   MC_AGENT_TOKEN={{ $tokenValue }}
+4. Make sure MC_API_URL={{ $apiUrl }} exists in ~/.openclaw/.env (add it if not)
 
-MC_AGENT_TOKEN={{ $tokenValue }}
-
-Don't overwrite the file — append to it. Also make sure MC_API_URL={{ $apiUrl }} exists in ~/.openclaw/.env (add it if it's not already there).</x-code-block>
+Important: MC_AGENT_TOKEN must only be in the workspace .env file, never in the global ~/.openclaw/.env — the global file takes priority and would override all workspace tokens.</x-code-block>
                     @endif
 
                     @if (! $plainToken && $envTab !== 'agent')
