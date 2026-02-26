@@ -21,6 +21,7 @@ class HeartbeatController extends Controller
     public function store(HeartbeatRequest $request): JsonResponse
     {
         $agent = $request->attributes->get('agent');
+        \Log::info('Heartbeat from: ' . $agent->name . ' (id: ' . $agent->id . ') | soul starts with: ' . substr($agent->soul_md, 0, 30));
         $validated = $request->validated();
 
         // Process error / circuit breaker
@@ -134,12 +135,12 @@ class HeartbeatController extends Controller
         ];
 
         // Soul sync check
-        $soulSync = null;
-        if (isset($validated['soul_hash']) && $validated['soul_hash'] !== $agent->soul_hash) {
-            $soulSync = [
-                'soul_md' => $agent->soul_md,
-                'soul_hash' => $agent->soul_hash,
-            ];
+            $soulSync = null;
+            if (isset($validated['soul_hash']) && $validated['soul_hash'] !== $agent->soul_hash) {
+                $soulSync = [
+                    'soul_md' => $agent->soul_md,
+                    'soul_hash' => $agent->soul_hash,
+                ];
         }
 
         // Build notifications from unread @mentions
